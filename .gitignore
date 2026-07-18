@@ -6,7 +6,10 @@ __pycache__/
 .Python
 # build/ - DON'T ignore all build dirs (frontend needs it)
 develop-eggs/
+# Ignore Python/tooling dist, but keep the Vite production build for Render
 dist/
+!frontend/dist/
+!frontend/dist/**
 downloads/
 eggs/
 .eggs/

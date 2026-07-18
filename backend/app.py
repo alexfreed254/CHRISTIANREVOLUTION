@@ -21,9 +21,18 @@ except ImportError:
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DIST_DIR = BASE_DIR / 'frontend' / 'dist'
+if DIST_DIR.exists():
+    print(f"Frontend build found: {DIST_DIR}")
+else:
+    print(f"WARNING: Frontend build missing at {DIST_DIR} — run: cd frontend && npm run build")
 
 # Initialize Flask
-app = Flask(__name__, static_folder=str(DIST_DIR), template_folder=str(DIST_DIR))
+app = Flask(
+    __name__,
+    static_folder=str(DIST_DIR) if DIST_DIR.exists() else None,
+    static_url_path='',
+    template_folder=str(DIST_DIR) if DIST_DIR.exists() else None,
+)
 app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET', secrets.token_hex(32))
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', secrets.token_hex(32))
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=30)

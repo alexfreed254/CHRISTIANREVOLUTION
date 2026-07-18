@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Globe, Heart, PrayingHands, Flame, ThumbsUp } from 'lucide-react'
+import { Send, Globe, Heart, HandHeart, Flame, ThumbsUp } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
 export default function LiveChat({ streamId, socket, comments: initialComments, isOpen, onClose }) {
@@ -13,7 +13,7 @@ export default function LiveChat({ streamId, socket, comments: initialComments, 
   const reactions = [
     { type: 'like', icon: ThumbsUp, label: '👍', color: '#3b82f6' },
     { type: 'love', icon: Heart, label: '❤️', color: '#ef4444' },
-    { type: 'pray', icon: PrayingHands, label: '🙏', color: '#22c55e' },
+    { type: 'pray', icon: HandHeart, label: '🙏', color: '#22c55e' },
     { type: 'fire', icon: Flame, label: '🔥', color: '#f97316' },
   ]
 
