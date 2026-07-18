@@ -68,3 +68,7 @@ service-account.json
 
 # OS
 Thumbs.db
+
+# Node
+node_modules/
+frontend/node_modules/

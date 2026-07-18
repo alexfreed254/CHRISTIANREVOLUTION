@@ -3,9 +3,6 @@ Christ Revolution Movement (CRM) — Flask API with Real-time Features
 Production-ready for Render deployment with Supabase backend
 """
 
-import eventlet
-eventlet.monkey_patch()
-
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room, leave_room
@@ -15,12 +12,18 @@ from pathlib import Path
 import os
 import secrets
 
-# Import your existing modules
-from supabase_client import supabase
-from auth import hash_password, verify_password, generate_unique_id
+try:
+    from .supabase_client import supabase
+    from .auth import hash_password, verify_password, generate_unique_id
+except ImportError:
+    from supabase_client import supabase
+    from auth import hash_password, verify_password, generate_unique_id
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DIST_DIR = BASE_DIR / 'frontend' / 'dist'
 
 # Initialize Flask
-app = Flask(__name__, static_folder='../frontend/dist', template_folder='../frontend/dist')
+app = Flask(__name__, static_folder=str(DIST_DIR), template_folder=str(DIST_DIR))
 app.config['SECRET_KEY'] = os.environ.get('SESSION_SECRET', secrets.token_hex(32))
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', secrets.token_hex(32))
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=30)
@@ -29,9 +32,17 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=30)
 ALLOWED_ORIGINS = os.environ.get('ALLOWED_ORIGINS', '*').split(',')
 CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
 
-# SocketIO with eventlet for WebSocket support on Render
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet', 
-                    ping_timeout=60, ping_interval=25, max_http_buffer_size=1e6)
+# Threading mode — no eventlet (deprecated). Works with gunicorn gthread workers.
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode='threading',
+    ping_timeout=60,
+    ping_interval=25,
+    max_http_buffer_size=1e6,
+    logger=False,
+    engineio_logger=False,
+)
 
 jwt = JWTManager(app)
 
@@ -116,6 +127,8 @@ SEED_PRAYERS = [
 
 def try_supabase(query_func, fallback=None):
     """Try Supabase query, return fallback on error"""
+    if supabase is None:
+        return fallback
     try:
         return query_func()
     except Exception as e:
@@ -662,18 +675,18 @@ def handle_socket_comment(data):
 @app.route('/<path:path>')
 def serve_frontend(path):
     """Serve React SPA - all routes return index.html"""
-    dist_path = Path(app.static_folder)
+    dist_path = Path(app.static_folder) if app.static_folder else DIST_DIR
 
     # Try to serve static file if it exists
     if path:
         file_path = dist_path / path
         if file_path.exists() and file_path.is_file():
-            return send_from_directory(app.static_folder, path)
+            return send_from_directory(str(dist_path), path)
 
     # Serve index.html for all routes (SPA routing)
     index_file = dist_path / 'index.html'
     if index_file.exists():
-        return send_from_directory(app.static_folder, 'index.html')
+        return send_from_directory(str(dist_path), 'index.html')
 
     # Fallback if frontend not built
     return jsonify({

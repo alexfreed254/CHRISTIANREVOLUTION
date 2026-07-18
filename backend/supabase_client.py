@@ -1,38 +1,42 @@
-from supabase import create_client, Client
+"""Supabase client — fails soft so the API can still serve seed/demo data."""
+
+from __future__ import annotations
+
 import os
-import sys
+from typing import Any, Optional
 
-# Get environment variables
-url: str = os.environ.get("SUPABASE_URL", "")
-key: str = os.environ.get("SUPABASE_SERVICE_KEY", "")
+from supabase import Client, create_client
 
-# Validate required environment variables
-if not url or not key:
-    print("ERROR: Missing required environment variables!")
-    print("Please set SUPABASE_URL and SUPABASE_SERVICE_KEY")
-    if os.environ.get("ENVIRONMENT") == "production":
-        sys.exit(1)
-    else:
-        print("WARNING: Running in development mode without proper configuration")
-else:
-    print(f"✅ Supabase URL configured: {url[:30]}...")
-    print(f"✅ Supabase Key configured: {key[:20]}...")
+url: str = os.environ.get("SUPABASE_URL", "").strip()
+key: str = os.environ.get("SUPABASE_SERVICE_KEY", "").strip()
+supabase: Optional[Client] = None
 
-# Create Supabase client
-try:
-    supabase: Client = create_client(url, key)
-    print("✅ Supabase client created successfully!")
-    
-    # Test connection with a simple query
+
+def _init_client() -> Optional[Client]:
+    if not url or not key:
+        print("WARNING: SUPABASE_URL / SUPABASE_SERVICE_KEY not set — using seed data fallbacks")
+        return None
+
     try:
-        test_result = supabase.table("members").select("id").limit(1).execute()
-        print(f"✅ Database connection test successful! (Found {len(test_result.data)} rows)")
-    except Exception as test_error:
-        print(f"⚠️  Database connection test failed: {test_error}")
-        print("This might indicate RLS policy issues or missing table")
-        
-except Exception as e:
-    print(f"ERROR: Failed to create Supabase client: {e}")
-    if os.environ.get("ENVIRONMENT") == "production":
-        sys.exit(1)
-    raise
+        client = create_client(url, key)
+        print(f"Supabase client ready ({url[:30]}...)")
+        try:
+            test = client.table("members").select("id").limit(1).execute()
+            rows = len(test.data) if test and test.data is not None else 0
+            print(f"Supabase connection OK ({rows} sample row(s))")
+        except Exception as test_error:
+            print(f"WARNING: Supabase reachable but query failed: {test_error}")
+        return client
+    except Exception as exc:
+        print(f"WARNING: Failed to create Supabase client: {exc}")
+        return None
+
+
+supabase = _init_client()
+
+
+def get_supabase() -> Any:
+    """Return the client or raise so callers can fall back cleanly."""
+    if supabase is None:
+        raise RuntimeError("Supabase client is not configured")
+    return supabase
