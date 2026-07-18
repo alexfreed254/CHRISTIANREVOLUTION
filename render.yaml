@@ -7,10 +7,10 @@ services:
       pip install --upgrade pip
       pip install -r requirements.txt
       cd frontend && npm install && npm run build
-    startCommand: gunicorn --worker-class eventlet -w 1 app:app --bind 0.0.0.0:$PORT
+    startCommand: gunicorn --worker-class eventlet -w 1 app:app --bind 0.0.0.0:$PORT --timeout 120 --log-level info
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: 3.11.9
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_KEY
