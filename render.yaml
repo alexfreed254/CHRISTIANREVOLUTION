@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: christ-revolution-movement
+    runtime: python
+    plan: standard
+    buildCommand: |
+      pip install -r requirements.txt
+      cd frontend && npm install && npm run build
+    startCommand: gunicorn --worker-class eventlet -w 1 app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: '*'
+      - key: ENVIRONMENT
+        value: production
+    healthCheckPath: /api/health
+    autoDeploy: true
