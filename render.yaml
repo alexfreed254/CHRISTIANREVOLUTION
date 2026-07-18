@@ -2,11 +2,12 @@ services:
   - type: web
     name: christ-revolution-movement
     runtime: python
-    plan: standard
+    plan: free
     buildCommand: |
+      pip install --upgrade pip
       pip install -r requirements.txt
       cd frontend && npm install && npm run build
-    startCommand: gunicorn --worker-class eventlet -w 1 app:app --bind 0.0.0.0:$PORT
+    startCommand: gunicorn --worker-class eventlet -w 1 backend.app:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
