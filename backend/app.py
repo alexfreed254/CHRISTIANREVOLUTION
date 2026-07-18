@@ -17,11 +17,13 @@ try:
     from .auth import hash_password, verify_password, generate_unique_id
     from . import reactions as reaction_store
     from . import live_stats as live_stats_mod
+    from . import payments as payments_mod
 except ImportError:
     from supabase_client import supabase, db_ready, get_supabase, db_execute
     from auth import hash_password, verify_password, generate_unique_id
     import reactions as reaction_store
     import live_stats as live_stats_mod
+    import payments as payments_mod
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DIST_DIR = BASE_DIR / 'frontend' / 'dist'
@@ -816,52 +818,8 @@ def pray_for_request(prayer_id):
         return jsonify({'error': 'Failed to update prayer count', 'message': str(e)}), 500
 
 # ============================================================================
-# GIVING ROUTES
+# GIVING ROUTES (payment_routes registers /api/give + PayPal/M-Pesa)
 # ============================================================================
-
-@app.route('/api/give', methods=['POST'])
-@jwt_required()
-def process_giving():
-    db_error = require_db()
-    if db_error:
-        return db_error
-
-    try:
-        data = request.get_json(silent=True) or {}
-        member_id = get_jwt_identity()
-        amount = data.get('amount', 0)
-        try:
-            amount = float(amount)
-        except (TypeError, ValueError):
-            return jsonify({'error': 'Invalid amount'}), 400
-        if amount <= 0:
-            return jsonify({'error': 'Amount must be greater than 0'}), 400
-
-        record = {
-            "member_id": member_id,
-            "amount": amount,
-            "currency": data.get('currency') or 'USD',
-            "category": data.get('type') or data.get('category') or 'tithe',
-            "is_recurring": (data.get('frequency') or 'one-time') != 'one-time',
-            "payment_method": data.get('payment_method') or 'card',
-            "receipt_id": f"CRM-{secrets.token_hex(5).upper()}",
-            "transaction_status": "completed",
-        }
-
-        result = db_execute(
-            lambda client: client.table("giving").insert(record).execute()
-        )
-        if not result.data:
-            return jsonify({'error': 'Failed to record giving'}), 500
-
-        broadcast_stats()
-        return jsonify({
-            'message': 'Giving recorded successfully',
-            'receipt': result.data[0]
-        }), 200
-    except Exception as e:
-        print(f"Giving error: {e}")
-        return jsonify({'error': 'Failed to record giving', 'message': str(e)}), 500
 
 @app.route('/api/giving/history', methods=['GET'])
 @jwt_required()
@@ -1054,6 +1012,22 @@ register_admin_routes(
     STREAM_STORE=STREAM_STORE,
     snapshot_stats=snapshot_stats,
     broadcast_stats=broadcast_stats,
+)
+
+try:
+    from .payment_routes import register_payment_routes
+except ImportError:
+    from payment_routes import register_payment_routes
+
+register_payment_routes(
+    app,
+    socketio=socketio,
+    supabase=supabase,
+    db_ready=db_ready,
+    db_execute=db_execute,
+    try_supabase=try_supabase,
+    broadcast_stats=broadcast_stats,
+    payments_mod=payments_mod,
 )
 
 # ============================================================================

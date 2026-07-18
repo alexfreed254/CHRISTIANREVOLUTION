@@ -3,12 +3,14 @@ import { Navigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Users, Radio, Library, DollarSign, Heart,
-  Plus, Trash2, Save, RefreshCw, Shield, Search
+  Plus, Trash2, Save, RefreshCw, Shield, Search, Settings
 } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
 import useLiveStats from '../hooks/useLiveStats'
+import PayPalLogo from '../components/common/PayPalLogo'
+import MpesaLogo from '../components/common/MpesaLogo'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -16,6 +18,7 @@ const TABS = [
   { id: 'streams', label: 'Streams', icon: Radio },
   { id: 'media', label: 'Media', icon: Library },
   { id: 'giving', label: 'Donations', icon: DollarSign },
+  { id: 'payments', label: 'Payment Setup', icon: Settings, superOnly: true },
   { id: 'prayers', label: 'Prayers', icon: Heart },
 ]
 
@@ -45,8 +48,21 @@ export default function AdminDashboard() {
   const [mediaForm, setMediaForm] = useState({
     title: '', description: '', video_url: '', audio_url: '', thumbnail_url: '', speaker: '', duration: 3600, bible_reference: ''
   })
+  const [paymentForm, setPaymentForm] = useState({
+    paypal_email: '',
+    paypal_client_id: '',
+    mpesa_till_number: '',
+    mpesa_shortcode: '',
+    mpesa_passkey: '',
+    mpesa_consumer_key: '',
+    mpesa_consumer_secret: '',
+    mpesa_callback_url: '',
+  })
+  const [paymentMeta, setPaymentMeta] = useState(null)
 
   const isAdmin = user && ['admin', 'super_admin'].includes(user.role)
+  const isSuperAdmin = user?.role === 'super_admin'
+  const visibleTabs = TABS.filter((t) => !t.superOnly || isSuperAdmin)
 
   useEffect(() => {
     if (isAdmin && token) loadTab(tab)
@@ -79,6 +95,24 @@ export default function AdminDashboard() {
         const res = await axios.get('/api/admin/giving', authHeaders(token))
         setGiving(res.data.giving || [])
         setGivingTotal(res.data.total_amount || 0)
+      } else if (id === 'payments') {
+        if (!isSuperAdmin) {
+          toast.error('Only superadmin can manage payment settings')
+          setLoading(false)
+          return
+        }
+        const res = await axios.get('/api/admin/payment-settings', authHeaders(token))
+        setPaymentMeta(res.data)
+        setPaymentForm({
+          paypal_email: res.data.paypal_email || '',
+          paypal_client_id: res.data.paypal_client_id || '',
+          mpesa_till_number: res.data.mpesa_till_number || '',
+          mpesa_shortcode: res.data.mpesa_shortcode || '',
+          mpesa_passkey: '',
+          mpesa_consumer_key: '',
+          mpesa_consumer_secret: '',
+          mpesa_callback_url: res.data.mpesa_callback_url || '',
+        })
       } else if (id === 'prayers') {
         const res = await axios.get('/api/admin/prayers', authHeaders(token))
         setPrayers(res.data.prayers || [])
@@ -183,6 +217,65 @@ export default function AdminDashboard() {
     }
   }
 
+  const savePaymentSettings = async (e) => {
+    e.preventDefault()
+    if (!isSuperAdmin) return
+    try {
+      const payload = {
+        paypal_email: paymentForm.paypal_email,
+        paypal_client_id: paymentForm.paypal_client_id,
+        mpesa_till_number: paymentForm.mpesa_till_number,
+        mpesa_shortcode: paymentForm.mpesa_shortcode,
+        mpesa_callback_url: paymentForm.mpesa_callback_url,
+      }
+      // Only send secrets when superadmin typed a new value (blank = leave unchanged)
+      if (paymentForm.mpesa_passkey.trim()) payload.mpesa_passkey = paymentForm.mpesa_passkey.trim()
+      if (paymentForm.mpesa_consumer_key.trim()) payload.mpesa_consumer_key = paymentForm.mpesa_consumer_key.trim()
+      if (paymentForm.mpesa_consumer_secret.trim()) payload.mpesa_consumer_secret = paymentForm.mpesa_consumer_secret.trim()
+
+      const res = await axios.put('/api/admin/payment-settings', payload, authHeaders(token))
+      setPaymentMeta(res.data.settings)
+      setPaymentForm((prev) => ({
+        ...prev,
+        paypal_email: res.data.settings.paypal_email || '',
+        paypal_client_id: res.data.settings.paypal_client_id || '',
+        mpesa_till_number: res.data.settings.mpesa_till_number || '',
+        mpesa_shortcode: res.data.settings.mpesa_shortcode || '',
+        mpesa_callback_url: res.data.settings.mpesa_callback_url || '',
+        mpesa_passkey: '',
+        mpesa_consumer_key: '',
+        mpesa_consumer_secret: '',
+      }))
+      toast.success('Payment settings saved')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to save payment settings')
+    }
+  }
+
+  const clearPaypalEmail = async () => {
+    if (!confirm('Remove the PayPal receiving email?')) return
+    try {
+      const res = await axios.put('/api/admin/payment-settings', { paypal_email: '' }, authHeaders(token))
+      setPaymentMeta(res.data.settings)
+      setPaymentForm((prev) => ({ ...prev, paypal_email: '' }))
+      toast.success('PayPal email removed')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to clear PayPal email')
+    }
+  }
+
+  const clearTill = async () => {
+    if (!confirm('Remove the M-Pesa Till / number?')) return
+    try {
+      const res = await axios.put('/api/admin/payment-settings', { mpesa_till_number: '', mpesa_shortcode: '' }, authHeaders(token))
+      setPaymentMeta(res.data.settings)
+      setPaymentForm((prev) => ({ ...prev, mpesa_till_number: '', mpesa_shortcode: '' }))
+      toast.success('M-Pesa Till cleared')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to clear Till')
+    }
+  }
+
   if (authLoading) {
     return (
       <div className="min-h-screen pt-28 flex items-center justify-center">
@@ -220,7 +313,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-4 mb-6">
-          {TABS.map((t) => (
+          {visibleTabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
@@ -437,7 +530,8 @@ export default function AdminDashboard() {
                     <th className="text-left p-3">Amount</th>
                     <th className="text-left p-3">Category</th>
                     <th className="text-left p-3">Method</th>
-                    <th className="text-left p-3">Receipt</th>
+                    <th className="text-left p-3">Status</th>
+                    <th className="text-left p-3">Txn / Receipt</th>
                     <th className="text-left p-3">Date</th>
                   </tr>
                 </thead>
@@ -447,17 +541,154 @@ export default function AdminDashboard() {
                       <td className="p-3 text-crm-white font-medium">{g.currency} {g.amount}</td>
                       <td className="p-3 text-crm-gray-light">{g.category}</td>
                       <td className="p-3 text-crm-gray">{g.payment_method}</td>
-                      <td className="p-3 text-crm-gray">{g.receipt_id}</td>
+                      <td className="p-3">
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          g.transaction_status === 'completed' ? 'bg-green-500/20 text-green-400'
+                            : g.transaction_status === 'failed' ? 'bg-red-500/20 text-red-400'
+                              : 'bg-amber-500/20 text-amber-400'
+                        }`}>
+                          {g.transaction_status || '—'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-crm-gray font-mono text-xs">
+                        {g.transaction_id || g.receipt_id}
+                      </td>
                       <td className="p-3 text-crm-gray">{g.created_at ? new Date(g.created_at).toLocaleString() : '—'}</td>
                     </tr>
                   ))}
                   {giving.length === 0 && (
-                    <tr><td colSpan={5} className="p-6 text-center text-crm-gray">No donations recorded yet</td></tr>
+                    <tr><td colSpan={6} className="p-6 text-center text-crm-gray">No donations recorded yet</td></tr>
                   )}
                 </tbody>
               </table>
             </div>
           </div>
+        )}
+
+        {tab === 'payments' && isSuperAdmin && (
+          <form onSubmit={savePaymentSettings} className="space-y-8 max-w-3xl">
+            <div className="p-6 rounded-2xl bg-crm-dark/60 border border-white/10 space-y-4">
+              <div className="flex items-center gap-3 mb-2">
+                <PayPalLogo className="h-7" />
+                <h2 className="text-lg font-bold text-crm-white">PayPal (international / cards)</h2>
+              </div>
+              <p className="text-sm text-crm-gray">
+                Add the church PayPal Business email used to receive donations. Optional Client ID enables full Checkout API when
+                <code className="mx-1 text-crm-purple">PAYPAL_CLIENT_SECRET</code> is also set on the server.
+              </p>
+              <label className="block text-sm text-crm-gray-light">PayPal receiving email</label>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={paymentForm.paypal_email}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, paypal_email: e.target.value })}
+                  placeholder="church@paypal.com"
+                  className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+                />
+                <button type="button" onClick={clearPaypalEmail} className="px-4 py-2 rounded-xl border border-red-500/40 text-red-400 text-sm">
+                  Remove
+                </button>
+              </div>
+              <label className="block text-sm text-crm-gray-light">PayPal Client ID (optional)</label>
+              <input
+                value={paymentForm.paypal_client_id}
+                onChange={(e) => setPaymentForm({ ...paymentForm, paypal_client_id: e.target.value })}
+                placeholder="PayPal REST App Client ID"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white font-mono text-sm"
+              />
+              {paymentMeta?.public && (
+                <p className="text-xs text-crm-gray">
+                  Status: {paymentMeta.public.paypal_configured ? 'Ready for donations' : 'Not configured'}
+                  {' · '}Mode: {paymentMeta.public.paypal_mode}
+                </p>
+              )}
+            </div>
+
+            <div className="p-6 rounded-2xl bg-crm-dark/60 border border-white/10 space-y-4">
+              <div className="flex items-center gap-3 mb-2">
+                <MpesaLogo className="h-7" />
+                <h2 className="text-lg font-bold text-crm-white">M-Pesa (Kenya)</h2>
+              </div>
+              <p className="text-sm text-crm-gray">
+                Set the Till / Buy Goods number shown to donors. For automatic STK Push, also add Daraja shortcode, passkey, and consumer credentials (or set them as Render env vars).
+              </p>
+              <label className="block text-sm text-crm-gray-light">Till / M-Pesa number</label>
+              <div className="flex gap-2">
+                <input
+                  value={paymentForm.mpesa_till_number}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, mpesa_till_number: e.target.value })}
+                  placeholder="e.g. 123456"
+                  className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white font-mono tracking-wider"
+                />
+                <button type="button" onClick={clearTill} className="px-4 py-2 rounded-xl border border-red-500/40 text-red-400 text-sm">
+                  Remove
+                </button>
+              </div>
+              <label className="block text-sm text-crm-gray-light">Business shortcode (Daraja)</label>
+              <input
+                value={paymentForm.mpesa_shortcode}
+                onChange={(e) => setPaymentForm({ ...paymentForm, mpesa_shortcode: e.target.value })}
+                placeholder="Same as Till, or Paybill shortcode"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white font-mono"
+              />
+              <label className="block text-sm text-crm-gray-light">STK Callback URL</label>
+              <input
+                value={paymentForm.mpesa_callback_url}
+                onChange={(e) => setPaymentForm({ ...paymentForm, mpesa_callback_url: e.target.value })}
+                placeholder="https://your-app.onrender.com/api/payments/mpesa/callback"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm"
+              />
+              <div className="grid sm:grid-cols-2 gap-3 pt-2">
+                <div>
+                  <label className="block text-xs text-crm-gray mb-1">
+                    Consumer Key {paymentMeta?.mpesa_consumer_key_set ? `(set: ${paymentMeta.mpesa_consumer_key_masked})` : ''}
+                  </label>
+                  <input
+                    type="password"
+                    value={paymentForm.mpesa_consumer_key}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, mpesa_consumer_key: e.target.value })}
+                    placeholder="Leave blank to keep existing"
+                    className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-crm-gray mb-1">
+                    Consumer Secret {paymentMeta?.mpesa_consumer_secret_set ? '(set)' : ''}
+                  </label>
+                  <input
+                    type="password"
+                    value={paymentForm.mpesa_consumer_secret}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, mpesa_consumer_secret: e.target.value })}
+                    placeholder="Leave blank to keep existing"
+                    className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-crm-gray mb-1">
+                  Passkey {paymentMeta?.mpesa_passkey_set ? `(set: ${paymentMeta.mpesa_passkey_masked})` : ''}
+                </label>
+                <input
+                  type="password"
+                  value={paymentForm.mpesa_passkey}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, mpesa_passkey: e.target.value })}
+                  placeholder="Leave blank to keep existing"
+                  className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm"
+                />
+              </div>
+              {paymentMeta?.public && (
+                <p className="text-xs text-crm-gray">
+                  STK: {paymentMeta.public.mpesa_stk_configured ? 'Ready' : 'Not ready'} ·
+                  Manual Till: {paymentMeta.public.mpesa_manual_available ? 'Available' : 'No'} ·
+                  Env: {paymentMeta.public.mpesa_env}
+                </p>
+              )}
+            </div>
+
+            <button type="submit" className="inline-flex items-center gap-2 shield-button px-6 py-3">
+              <Save className="w-4 h-4" /> Save payment settings
+            </button>
+          </form>
         )}
 
         {tab === 'prayers' && (

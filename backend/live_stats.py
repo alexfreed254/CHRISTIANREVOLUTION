@@ -39,12 +39,13 @@ def build_live_stats(
                     countries.add(str(row["country"]))
 
         giving = try_supabase(
-            lambda: supabase.table("giving").select("amount").execute(),
+            lambda: supabase.table("giving").select("amount,transaction_status").execute(),
             None,
         )
         if giving and giving.data:
-            giving_count = len(giving.data)
-            giving_total = sum(float(g.get("amount") or 0) for g in giving.data)
+            paid = [g for g in giving.data if (g.get("transaction_status") or "completed") == "completed"]
+            giving_count = len(paid)
+            giving_total = sum(float(g.get("amount") or 0) for g in paid)
 
         prayers = try_supabase(
             lambda: supabase.table("prayer_requests").select("id", count="exact").execute(),
