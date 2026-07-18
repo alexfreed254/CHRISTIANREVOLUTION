@@ -32,6 +32,7 @@ DROP TABLE IF EXISTS stream_comments CASCADE;
 DROP TABLE IF EXISTS live_streams CASCADE;
 DROP TABLE IF EXISTS course_completions CASCADE;
 DROP TABLE IF EXISTS giving CASCADE;
+DROP TABLE IF EXISTS payment_settings CASCADE;
 DROP TABLE IF EXISTS prayer_requests CASCADE;
 DROP TABLE IF EXISTS attendance CASCADE;
 DROP TABLE IF EXISTS sessions CASCADE;
@@ -158,13 +159,41 @@ CREATE TABLE IF NOT EXISTS giving (
     is_recurring        BOOLEAN DEFAULT false,
     payment_method      VARCHAR(50) NOT NULL,
     receipt_id          VARCHAR(50) UNIQUE NOT NULL,
-    transaction_status  VARCHAR(50) DEFAULT 'completed',
+    transaction_status  VARCHAR(50) DEFAULT 'pending',
+    donor_name          TEXT,
+    donor_email         TEXT,
+    phone_number        VARCHAR(32),
+    transaction_id      VARCHAR(100),
+    checkout_id         VARCHAR(120),
+    notes               TEXT,
+    paid_at             TIMESTAMP,
     created_at          TIMESTAMP DEFAULT NOW()
 );
 
 COMMENT ON TABLE giving IS 'Financial contributions and donations tracking';
 COMMENT ON COLUMN giving.category IS 'Giving category: tithe, offering, mission, building, special';
 COMMENT ON COLUMN giving.transaction_status IS 'Payment status: pending, completed, failed, refunded';
+
+-- ───────────────────────────────────────────────────────────────────────────────
+-- Table: payment_settings
+-- Description: Superadmin PayPal + M-Pesa receiving configuration
+-- ─────────────────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS payment_settings (
+    id                    UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    paypal_email          TEXT,
+    paypal_client_id      TEXT,
+    mpesa_till_number     VARCHAR(32),
+    mpesa_shortcode       VARCHAR(32),
+    mpesa_passkey         TEXT,
+    mpesa_consumer_key    TEXT,
+    mpesa_consumer_secret TEXT,
+    mpesa_callback_url    TEXT,
+    updated_by            UUID REFERENCES members(id) ON DELETE SET NULL,
+    updated_at            TIMESTAMP DEFAULT NOW(),
+    created_at            TIMESTAMP DEFAULT NOW()
+);
+
+COMMENT ON TABLE payment_settings IS 'Superadmin-managed PayPal and M-Pesa receiving details';
 
 -- ───────────────────────────────────────────────────────────────────────────────
 -- Table: media
@@ -316,6 +345,9 @@ CREATE INDEX IF NOT EXISTS idx_prayer_created_at ON prayer_requests(created_at);
 CREATE INDEX IF NOT EXISTS idx_giving_member ON giving(member_id);
 CREATE INDEX IF NOT EXISTS idx_giving_created_at ON giving(created_at);
 CREATE INDEX IF NOT EXISTS idx_giving_receipt_id ON giving(receipt_id);
+CREATE INDEX IF NOT EXISTS idx_giving_transaction_id ON giving(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_giving_status ON giving(transaction_status);
+CREATE INDEX IF NOT EXISTS idx_giving_checkout_id ON giving(checkout_id);
 
 -- Media indexes
 CREATE INDEX IF NOT EXISTS idx_media_type ON media(media_type);
@@ -490,6 +522,7 @@ ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE prayer_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE giving ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payment_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE course_completions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE live_streams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE stream_comments ENABLE ROW LEVEL SECURITY;
@@ -586,6 +619,12 @@ CREATE POLICY "Users can view own giving" ON giving
     FOR SELECT
     USING (true);
 
+CREATE POLICY "Service role bypass payment_settings" ON payment_settings
+    FOR ALL
+    USING (true)
+    WITH CHECK (true);
+
+
 -- ───────────────────────────────────────────────────────────────────────────────
 -- COURSE COMPLETIONS TABLE POLICIES
 -- ───────────────────────────────────────────────────────────────────────────────
@@ -659,6 +698,11 @@ GRANT ALL ON prayer_requests TO service_role;
 GRANT SELECT ON giving TO authenticated;
 GRANT ALL ON giving TO service_role;
 
+-- Payment settings grants
+GRANT ALL ON payment_settings TO service_role;
+GRANT SELECT ON payment_settings TO authenticated;
+
+
 -- Course completions table grants
 GRANT SELECT, INSERT ON course_completions TO authenticated;
 GRANT ALL ON course_completions TO service_role;
@@ -703,6 +747,7 @@ BEGIN
     RAISE NOTICE '  • attendance';
     RAISE NOTICE '  • prayer_requests';
     RAISE NOTICE '  • giving';
+    RAISE NOTICE '  • payment_settings';
     RAISE NOTICE '  • media';
     RAISE NOTICE '  • locations';
     RAISE NOTICE '  • course_completions';

@@ -29,8 +29,8 @@ The Christ Revolution Movement (CRM) is a global discipleship platform that brin
 - **Flask-SocketIO** for WebSocket support
 - **Flask-JWT-Extended** for authentication
 - **Supabase** (PostgreSQL) for database
-- **Eventlet** for async operations
-- **Gunicorn** for production server
+- **Gunicorn** (gthread) for production server
+- **httpx** for PayPal + Safaricom Daraja API calls
 
 ### Infrastructure
 - **Supabase** - Database and authentication
@@ -67,7 +67,9 @@ CHRIST-REVOLUTION-MOVEMENT1/
 │   ├── tailwind.config.js     # Tailwind configuration
 │   └── postcss.config.js      # PostCSS configuration
 ├── database.sql               # Database schema
+├── database_payments.sql      # Migration: PayPal/M-Pesa (existing DBs)
 ├── .env.example               # Environment variables template
+├── .env.payment.example       # Optional PayPal / M-Pesa env vars
 ├── Procfile                   # Render deployment config
 ├── render.yaml                # Render service configuration
 └── requirements.txt           # Root Python dependencies
@@ -109,6 +111,7 @@ PORT=8000
    - Open Supabase SQL Editor
    - Copy and paste the contents of `database.sql`
    - Execute the script
+4. **Existing databases** (already ran `database.sql` before donations): also run `database_payments.sql` once to add PayPal/M-Pesa tables and columns.
 
 ### 4. Backend Setup
 ```bash
@@ -158,7 +161,18 @@ The frontend will start on `http://localhost:5173`
 4. **Deploy!** Render will:
    - Install Python and Node dependencies
    - Build the React frontend
-   - Start the Flask server with Gunicorn + Eventlet
+   - Start the Flask server with Gunicorn (gthread + Socket.IO threading)
+
+### Digital Giving (PayPal + M-Pesa)
+
+1. Log in as **superadmin** → **Admin** → **Payment Setup**
+2. Add the church **PayPal Business email** (and optional Client ID)
+3. Add the **M-Pesa Till / number**
+4. For automatic STK Push, add Daraja shortcode, passkey, consumer key/secret, and set callback to:
+   `https://YOUR-APP.onrender.com/api/payments/mpesa/callback`
+5. Optional secrets can also be set as Render env vars (see `.env.payment.example`)
+
+Donors use **Support** (`/give`): PayPal Checkout for international/cards, M-Pesa for Kenya.
 
 ## 🔑 Key Features
 
