@@ -13,10 +13,10 @@ import os
 import secrets
 
 try:
-    from .supabase_client import supabase
+    from .supabase_client import supabase, db_ready, get_supabase, db_execute
     from .auth import hash_password, verify_password, generate_unique_id
 except ImportError:
-    from supabase_client import supabase
+    from supabase_client import supabase, db_ready, get_supabase, db_execute
     from auth import hash_password, verify_password, generate_unique_id
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -135,7 +135,7 @@ SEED_PRAYERS = [
 # ============================================================================
 
 def try_supabase(query_func, fallback=None):
-    """Try Supabase query, return fallback on error"""
+    """Try Supabase query, return fallback on error (read/seed paths only)."""
     if supabase is None:
         return fallback
     try:
@@ -143,6 +143,24 @@ def try_supabase(query_func, fallback=None):
     except Exception as e:
         print(f"Supabase error: {e}")
         return fallback
+
+
+def require_db():
+    """Abort with JSON error when Supabase is not configured."""
+    if not db_ready():
+        return jsonify({
+            'error': 'Database not configured',
+            'message': 'Set SUPABASE_URL and SUPABASE_SERVICE_KEY on the server '
+                       '(service_role key from Supabase → Settings → API).'
+        }), 503
+    return None
+
+
+def public_member(member: dict) -> dict:
+    """Strip sensitive fields before returning member JSON."""
+    data = dict(member)
+    data.pop('password_hash', None)
+    return data
 
 # ============================================================================
 # AUTH ROUTES (using your existing auth.py)
@@ -153,127 +171,149 @@ def health_check():
     return jsonify({
         'status': 'ok',
         'service': 'CRM Central Command',
+        'database': 'connected' if db_ready() else 'disconnected',
         'time': datetime.utcnow().isoformat()
     }), 200
 
 @app.route('/api/register', methods=['POST'])
 def register():
+    db_error = require_db()
+    if db_error:
+        return db_error
+
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         required = ['full_name', 'continent', 'country', 'city', 'email', 'phone', 'username', 'password']
         for field in required:
-            if field not in data:
+            value = data.get(field)
+            if value is None or (isinstance(value, str) and not value.strip()):
                 return jsonify({'error': f'Missing: {field}'}), 400
 
-        # Check existing
-        existing = try_supabase(
-            lambda: supabase.table("members").select("id").eq("username", data['username']).execute(),
-            None
+        email = data['email'].strip().lower()
+        username = data['username'].strip()
+
+        existing = db_execute(
+            lambda client: client.table("members").select("id").eq("username", username).execute()
         )
-        if existing and existing.data:
+        if existing.data:
             return jsonify({'error': 'Username taken'}), 400
 
-        existing_email = try_supabase(
-            lambda: supabase.table("members").select("id").eq("email", data['email']).execute(),
-            None
+        existing_email = db_execute(
+            lambda client: client.table("members").select("id").eq("email", email).execute()
         )
-        if existing_email and existing_email.data:
+        if existing_email.data:
             return jsonify({'error': 'Email registered'}), 400
 
         unique_id = generate_unique_id(data['continent'], data['country'], data['city'])
         password_hash = hash_password(data['password'])
 
+        # Columns aligned with database.sql → members
         member = {
-            "full_name": data['full_name'],
-            "continent": data['continent'],
-            "country": data['country'],
-            "city": data['city'],
-            "village": data.get('village'),
-            "email": data['email'],
-            "phone": data['phone'],
-            "username": data['username'],
+            "full_name": data['full_name'].strip(),
+            "continent": data['continent'].strip(),
+            "country": data['country'].strip(),
+            "city": data['city'].strip(),
+            "email": email,
+            "phone": str(data['phone']).strip(),
+            "username": username,
             "password_hash": password_hash,
             "unique_id": unique_id,
             "growth_stage": "new_believer",
             "engagement_score": 0,
             "streak": 0,
-            "joined_at": datetime.utcnow().isoformat(),
-            "preferred_language": "en",
-            "timezone": "UTC"
+            "role": "member",
+            "preferred_language": data.get('preferred_language') or "en",
+            "timezone": data.get('timezone') or "UTC",
         }
+        village = (data.get('village') or '').strip()
+        if village:
+            member["village"] = village
 
-        result = try_supabase(lambda: supabase.table("members").insert(member).execute(), None)
-        if not result or not result.data:
-            # Return demo response if Supabase fails
+        result = db_execute(
+            lambda client: client.table("members").insert(member).execute()
+        )
+        if not result.data:
             return jsonify({
-                'token': create_access_token(identity='demo-member-id'),
-                'member': {
-                    'id': 'demo-member-id',
-                    'full_name': data['full_name'],
-                    'unique_id': unique_id,
-                    'growth_stage': 'new_believer',
-                    'streak': 0,
-                    'engagement_score': 0
-                }
-            }), 201
+                'error': 'Registration failed',
+                'message': 'Insert returned no row. Confirm the members table exists (run database.sql).'
+            }), 500
 
-        member_data = result.data[0]
-        member_data.pop('password_hash', None)
-        token = create_access_token(identity=member_data['id'])
+        member_data = public_member(result.data[0])
+        token = create_access_token(identity=str(member_data['id']))
         return jsonify({'token': token, 'member': member_data}), 201
 
     except Exception as e:
         print(f"Registration error: {e}")
-        return jsonify({'error': str(e)}), 500
+        message = str(e)
+        if 'duplicate' in message.lower() or 'unique' in message.lower():
+            return jsonify({'error': 'Username or email already registered'}), 400
+        if 'members' in message.lower() and ('schema' in message.lower() or 'exist' in message.lower()):
+            return jsonify({
+                'error': 'Database tables missing',
+                'message': 'Run database.sql in the Supabase SQL editor, then try again.'
+            }), 500
+        return jsonify({'error': 'Registration failed', 'message': message}), 500
 
 @app.route('/api/login', methods=['POST'])
 def login():
+    db_error = require_db()
+    if db_error:
+        return db_error
+
     try:
-        data = request.get_json()
-        if not data.get('username') or not data.get('password'):
+        data = request.get_json(silent=True) or {}
+        username = (data.get('username') or '').strip()
+        password = data.get('password') or ''
+        if not username or not password:
             return jsonify({'error': 'Username and password required'}), 400
 
-        result = try_supabase(
-            lambda: supabase.table("members").select("*").eq("username", data['username']).execute(),
-            None
+        result = db_execute(
+            lambda client: client.table("members").select("*").eq("username", username).execute()
         )
-        if not result or not result.data:
+        if not result.data:
+            # Also allow login by email
+            result = db_execute(
+                lambda client: client.table("members").select("*").eq("email", username.lower()).execute()
+            )
+        if not result.data:
             return jsonify({'error': 'Invalid credentials'}), 401
 
         member = result.data[0]
-        if not verify_password(data['password'], member['password_hash']):
+        if not verify_password(password, member.get('password_hash') or ''):
             return jsonify({'error': 'Invalid credentials'}), 401
 
-        # Update last seen
-        try_supabase(lambda: supabase.table("members").update({
-            "last_seen": datetime.utcnow().isoformat()
-        }).eq("id", member['id']).execute(), None)
+        db_execute(
+            lambda client: client.table("members").update({
+                "last_seen": datetime.utcnow().isoformat()
+            }).eq("id", member['id']).execute()
+        )
 
-        member.pop('password_hash', None)
-        token = create_access_token(identity=member['id'])
-        return jsonify({'token': token, 'member': member}), 200
+        member_data = public_member(member)
+        token = create_access_token(identity=str(member_data['id']))
+        return jsonify({'token': token, 'member': member_data}), 200
 
     except Exception as e:
         print(f"Login error: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Login failed', 'message': str(e)}), 500
 
 @app.route('/api/me', methods=['GET'])
 @jwt_required()
 def get_me():
+    db_error = require_db()
+    if db_error:
+        return db_error
+
     try:
         member_id = get_jwt_identity()
-        result = try_supabase(
-            lambda: supabase.table("members").select("*").eq("id", member_id).single().execute(),
-            None
+        result = db_execute(
+            lambda client: client.table("members").select("*").eq("id", member_id).single().execute()
         )
-        if not result or not result.data:
+        if not result.data:
             return jsonify({'error': 'Member not found'}), 404
-        member = result.data
-        member.pop('password_hash', None)
-        return jsonify(member), 200
+        return jsonify(public_member(result.data)), 200
     except Exception as e:
         print(f"Get me error: {e}")
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': 'Member not found'}), 404
 
 # ============================================================================
 # LIVE STREAMING ROUTES (with seed data fallback)
@@ -479,40 +519,49 @@ def get_prayers():
 @app.route('/api/prayers', methods=['POST'])
 @jwt_required()
 def create_prayer():
+    db_error = require_db()
+    if db_error:
+        return db_error
+
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         member_id = get_jwt_identity()
+        content = (data.get('content') or '').strip()
+        if not content:
+            return jsonify({'error': 'Prayer content is required'}), 400
 
         prayer = {
             "member_id": member_id,
-            "content": data.get('content'),
-            "is_public": data.get('is_public', True),
+            "content": content,
+            "is_public": bool(data.get('is_public', True)),
             "pray_count": 0,
-            "created_at": datetime.utcnow().isoformat()
         }
 
-        result = try_supabase(
-            lambda: supabase.table("prayer_requests").insert(prayer).execute(),
-            None
+        result = db_execute(
+            lambda client: client.table("prayer_requests").insert(prayer).execute()
         )
-
-        if result and result.data:
-            return jsonify({'prayer': result.data[0]}), 201
-        return jsonify({'prayer': {**prayer, 'id': 'local-prayer'}}), 201
+        if not result.data:
+            return jsonify({'error': 'Failed to save prayer request'}), 500
+        return jsonify({'prayer': result.data[0]}), 201
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        print(f"Create prayer error: {e}")
+        return jsonify({'error': 'Failed to save prayer request', 'message': str(e)}), 500
 
 @app.route('/api/prayers/<prayer_id>/pray', methods=['POST'])
 @jwt_required()
 def pray_for_request(prayer_id):
+    db_error = require_db()
+    if db_error:
+        return db_error
+
     try:
-        try_supabase(
-            lambda: supabase.rpc("increment_pray_count", {"p_id": prayer_id}).execute(),
-            None
+        db_execute(
+            lambda client: client.rpc("increment_pray_count", {"p_id": prayer_id}).execute()
         )
         return jsonify({'status': 'ok'}), 200
     except Exception as e:
-        return jsonify({'status': 'ok'}), 200
+        print(f"Pray error: {e}")
+        return jsonify({'error': 'Failed to update prayer count', 'message': str(e)}), 500
 
 # ============================================================================
 # GIVING ROUTES
@@ -521,32 +570,45 @@ def pray_for_request(prayer_id):
 @app.route('/api/give', methods=['POST'])
 @jwt_required()
 def process_giving():
+    db_error = require_db()
+    if db_error:
+        return db_error
+
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         member_id = get_jwt_identity()
+        amount = data.get('amount', 0)
+        try:
+            amount = float(amount)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Invalid amount'}), 400
+        if amount <= 0:
+            return jsonify({'error': 'Amount must be greater than 0'}), 400
 
         record = {
             "member_id": member_id,
-            "amount": data.get('amount', 0),
-            "currency": data.get('currency', 'USD'),
-            "category": data.get('type', 'tithe'),
-            "is_recurring": data.get('frequency') != 'one-time',
-            "payment_method": data.get('payment_method', 'card'),
+            "amount": amount,
+            "currency": data.get('currency') or 'USD',
+            "category": data.get('type') or data.get('category') or 'tithe',
+            "is_recurring": (data.get('frequency') or 'one-time') != 'one-time',
+            "payment_method": data.get('payment_method') or 'card',
             "receipt_id": f"CRM-{secrets.token_hex(5).upper()}",
-            "created_at": datetime.utcnow().isoformat()
+            "transaction_status": "completed",
         }
 
-        result = try_supabase(
-            lambda: supabase.table("giving").insert(record).execute(),
-            None
+        result = db_execute(
+            lambda client: client.table("giving").insert(record).execute()
         )
+        if not result.data:
+            return jsonify({'error': 'Failed to record giving'}), 500
 
         return jsonify({
             'message': 'Giving recorded successfully',
-            'receipt': result.data[0] if result and result.data else record
+            'receipt': result.data[0]
         }), 200
     except Exception as e:
-        return jsonify({'message': 'Giving recorded', 'receipt': {'amount': data.get('amount')}}), 200
+        print(f"Giving error: {e}")
+        return jsonify({'error': 'Failed to record giving', 'message': str(e)}), 500
 
 @app.route('/api/giving/history', methods=['GET'])
 @jwt_required()
@@ -570,38 +632,45 @@ def get_giving_history():
 @app.route('/api/attendance', methods=['POST'])
 @jwt_required()
 def check_in():
+    db_error = require_db()
+    if db_error:
+        return db_error
+
     try:
         member_id = get_jwt_identity()
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
 
         record = {
             "member_id": member_id,
-            "service_type": data.get('service_type', 'sunday'),
-            "mode": data.get('mode', 'online'),
-            "location_code": data.get('location_code'),
-            "attended_at": datetime.utcnow().isoformat()
+            "service_type": data.get('service_type') or 'sunday_service',
+            "mode": data.get('mode') or 'online',
         }
+        if data.get('location_code'):
+            record["location_code"] = data.get('location_code')
 
-        try_supabase(lambda: supabase.table("attendance").insert(record).execute(), None)
-
-        # Update engagement
-        member = try_supabase(
-            lambda: supabase.table("members").select("engagement_score, streak").eq("id", member_id).single().execute(),
-            None
+        db_execute(
+            lambda client: client.table("attendance").insert(record).execute()
         )
-        if member and member.data:
+
+        member = db_execute(
+            lambda client: client.table("members").select("engagement_score, streak").eq("id", member_id).single().execute()
+        )
+        if member.data:
             new_score = (member.data.get('engagement_score') or 0) + 10
             new_streak = (member.data.get('streak') or 0) + 1
-            try_supabase(lambda: supabase.table("members").update({
-                "engagement_score": new_score,
-                "streak": new_streak,
-                "last_seen": datetime.utcnow().isoformat()
-            }).eq("id", member_id).execute(), None)
+            db_execute(
+                lambda client: client.table("members").update({
+                    "engagement_score": new_score,
+                    "streak": new_streak,
+                    "last_seen": datetime.utcnow().isoformat()
+                }).eq("id", member_id).execute()
+            )
             return jsonify({'status': 'ok', 'score': new_score, 'streak': new_streak}), 200
 
         return jsonify({'status': 'ok'}), 200
     except Exception as e:
-        return jsonify({'status': 'ok'}), 200
+        print(f"Attendance error: {e}")
+        return jsonify({'error': 'Check-in failed', 'message': str(e)}), 500
 
 # ============================================================================
 # WEBSOCKET EVENTS

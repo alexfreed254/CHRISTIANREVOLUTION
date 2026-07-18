@@ -27,7 +27,7 @@ export default function Login() {
       navigate('/portal')
     } catch (err) {
       console.error('Login error:', err)
-      toast.error(err.response?.data?.error || 'Invalid credentials')
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Invalid credentials')
     } finally {
       setLoading(false)
     }

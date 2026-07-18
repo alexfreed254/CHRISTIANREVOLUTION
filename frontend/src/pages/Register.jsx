@@ -52,7 +52,7 @@ export default function Register() {
       navigate('/portal')
     } catch (err) {
       console.error('Registration error:', err)
-      toast.error(err.response?.data?.error || 'Registration failed')
+      toast.error(err.response?.data?.error || err.response?.data?.message || 'Registration failed')
     } finally {
       setLoading(false)
     }

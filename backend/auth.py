@@ -75,8 +75,8 @@ def generate_unique_id(continent: str, country: str, city: str) -> str:
     try:
         if supabase is None:
             raise RuntimeError("no supabase")
-        result = supabase.table("members").select("id").eq("city", city).execute()
-        seq = len(result.data or []) + 1
+        result = supabase.table("members").select("id", count="exact").eq("city", city).execute()
+        seq = (result.count if getattr(result, "count", None) is not None else len(result.data or [])) + 1
         return f"CRM-{cont_code}-{city_code}-{seq:06d}"
     except Exception as exc:
         print(f"Unique ID generation fallback: {exc}")
