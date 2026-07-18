@@ -1,28 +1,25 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Globe, Heart, HandHeart, Flame, ThumbsUp } from 'lucide-react'
+import { Send, Globe } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import ReactionBar, { SERMON_REACTIONS } from '../common/ReactionBar'
 
-export default function LiveChat({ streamId, socket, comments: initialComments, isOpen, onClose }) {
+export default function LiveChat({ streamId, socket, comments: initialComments, isOpen, onClose, initialReactions }) {
   const [comments, setComments] = useState(initialComments || [])
   const [newComment, setNewComment] = useState('')
   const [filter, setFilter] = useState('all')
   const [floatingReactions, setFloatingReactions] = useState([])
   const chatEndRef = useRef(null)
 
-  const reactions = [
-    { type: 'like', icon: ThumbsUp, label: '👍', color: '#3b82f6' },
-    { type: 'love', icon: Heart, label: '❤️', color: '#ef4444' },
-    { type: 'pray', icon: HandHeart, label: '🙏', color: '#22c55e' },
-    { type: 'fire', icon: Flame, label: '🔥', color: '#f97316' },
-  ]
-
   useEffect(() => { setComments(initialComments || []) }, [initialComments])
 
   useEffect(() => {
     if (socket) {
       socket.on('new_comment', (comment) => { setComments(prev => [...prev, comment]) })
-      socket.on('reaction', (data) => { addFloatingReaction(data.type) })
+      socket.on('reaction', (data) => {
+        const match = SERMON_REACTIONS.find(r => r.type === data.type)
+        addFloatingReaction(match?.emoji || data.emoji || '🙏')
+      })
     }
     return () => {
       if (socket) { socket.off('new_comment'); socket.off('reaction') }
@@ -31,10 +28,9 @@ export default function LiveChat({ streamId, socket, comments: initialComments, 
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [comments])
 
-  const addFloatingReaction = (type) => {
-    const id = Date.now()
-    const reaction = reactions.find(r => r.type === type) || reactions[0]
-    setFloatingReactions(prev => [...prev, { id, ...reaction }])
+  const addFloatingReaction = (emoji) => {
+    const id = Date.now() + Math.random()
+    setFloatingReactions(prev => [...prev, { id, emoji }])
     setTimeout(() => { setFloatingReactions(prev => prev.filter(r => r.id !== id)) }, 3000)
   }
 
@@ -42,18 +38,13 @@ export default function LiveChat({ streamId, socket, comments: initialComments, 
     e.preventDefault()
     if (!newComment.trim()) return
     const comment = {
-      id: `local-${Date.now()}`, stream_id: streamId, member_name: 'You', member_location: 'Your Location',
+      id: `local-${Date.now()}`, stream_id: streamId, member_name: 'You', member_location: 'Watching live',
       content: newComment, language: 'en', is_prayer_request: newComment.includes('🙏') || newComment.toLowerCase().includes('pray'),
       created_at: new Date().toISOString(),
     }
     setComments(prev => [...prev, comment])
-    if (socket) { socket.emit('post_comment', { stream_id: streamId, content: newComment, member_name: 'You', member_location: 'Your Location' }) }
+    if (socket) { socket.emit('post_comment', { stream_id: streamId, content: newComment, member_name: 'You', member_location: 'Watching live' }) }
     setNewComment('')
-  }
-
-  const handleReaction = (type) => {
-    addFloatingReaction(type)
-    if (socket) { socket.emit('stream_reaction', { stream_id: streamId, type }) }
   }
 
   const filteredComments = comments.filter(c => {
@@ -65,7 +56,7 @@ export default function LiveChat({ streamId, socket, comments: initialComments, 
   return (
     <motion.div initial={{ x: 400, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 400, opacity: 0 }}
       transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-      className="w-full lg:w-96 bg-crm-dark border-l border-white/10 flex flex-col h-full">
+      className="w-full lg:w-96 bg-crm-dark border border-white/10 rounded-2xl flex flex-col h-[70vh] lg:h-[calc(100vh-8rem)] relative overflow-hidden">
 
       <div className="flex items-center justify-between p-4 border-b border-white/10">
         <div className="flex items-center gap-2">
@@ -78,7 +69,7 @@ export default function LiveChat({ streamId, socket, comments: initialComments, 
             className="text-xs bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-crm-gray-light focus:outline-none focus:border-crm-purple">
             <option value="all">All</option><option value="prayers">Prayers</option>
           </select>
-          <button onClick={onClose} className="lg:hidden p-1 hover:bg-white/5 rounded">✕</button>
+          {onClose && <button onClick={onClose} className="lg:hidden p-1 hover:bg-white/5 rounded">✕</button>}
         </div>
       </div>
 
@@ -108,31 +99,30 @@ export default function LiveChat({ streamId, socket, comments: initialComments, 
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <AnimatePresence>
           {floatingReactions.map((reaction) => (
-            <motion.div key={reaction.id} initial={{ opacity: 1, y: 0, x: Math.random() * 200 }}
-              animate={{ opacity: 0, y: -300 }} exit={{ opacity: 0 }} transition={{ duration: 3, ease: 'easeOut' }}
-              className="absolute bottom-20 text-2xl" style={{ left: `${Math.random() * 80}%` }}>
-              {reaction.label}
+            <motion.div key={reaction.id} initial={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 0, y: -280 }} exit={{ opacity: 0 }} transition={{ duration: 3, ease: 'easeOut' }}
+              className="absolute bottom-36 text-2xl" style={{ left: `${12 + Math.random() * 70}%` }}>
+              {reaction.emoji}
             </motion.div>
           ))}
         </AnimatePresence>
       </div>
 
-      <div className="px-4 py-2 border-t border-white/10">
-        <div className="flex items-center justify-center gap-2">
-          {reactions.map((reaction) => (
-            <motion.button key={reaction.type} whileTap={{ scale: 0.9 }} onClick={() => handleReaction(reaction.type)}
-              className="p-2 rounded-full hover:bg-white/10 transition-all text-lg" title={reaction.label}>
-              {reaction.label}
-            </motion.button>
-          ))}
-        </div>
+      <div className="px-3 py-3 border-t border-white/10 bg-crm-black/40">
+        <ReactionBar
+          contentId={streamId}
+          contentType="stream"
+          socket={socket}
+          initialCounts={initialReactions}
+          compact
+        />
       </div>
 
       <form onSubmit={handleSendComment} className="p-4 border-t border-white/10">
         <div className="flex items-center gap-2">
           <div className="flex-1 relative">
-            <input ref={chatEndRef} type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Type a message..."
+            <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Say Amen, share a testimony..."
               className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple transition-all" />
           </div>
           <motion.button whileTap={{ scale: 0.95 }} type="submit" disabled={!newComment.trim()}

@@ -15,9 +15,11 @@ import secrets
 try:
     from .supabase_client import supabase, db_ready, get_supabase, db_execute
     from .auth import hash_password, verify_password, generate_unique_id
+    from . import reactions as reaction_store
 except ImportError:
     from supabase_client import supabase, db_ready, get_supabase, db_execute
     from auth import hash_password, verify_password, generate_unique_id
+    import reactions as reaction_store
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DIST_DIR = BASE_DIR / 'frontend' / 'dist'
@@ -67,8 +69,8 @@ SEED_STREAMS = [
         "stream_url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
         "thumbnail_url": "https://images.unsplash.com/photo-1507692042200-27a99c57e4a2?w=1280&h=720&fit=crop",
         "status": "live",
-        "viewer_count": 14230,
-        "like_count": 2450,
+        "viewer_count": 1847,
+        "like_count": 926,
         "speaker": "Apostle John Mwangi",
         "language": "en",
         "available_languages": ["en", "sw", "pt", "fr", "es"],
@@ -356,31 +358,132 @@ def get_streams():
 @app.route('/api/live/streams/<stream_id>', methods=['GET'])
 def get_stream(stream_id):
     try:
-        result = try_supabase(
-            lambda: supabase.table("live_streams").select("*").eq("id", stream_id).single().execute(),
-            None
-        )
-        stream = result.data if result else None
-        if not stream:
-            stream = next((s for s in STREAM_STORE if str(s['id']) == str(stream_id)), None)
+        stream = next((s for s in STREAM_STORE if str(s['id']) == str(stream_id)), None)
+        # Only query Supabase when id looks like a UUID
+        if stream is None and db_ready() and len(str(stream_id)) >= 32:
+            result = try_supabase(
+                lambda: supabase.table("live_streams").select("*").eq("id", stream_id).single().execute(),
+                None
+            )
+            stream = result.data if result else None
         if not stream:
             return jsonify({'error': 'Stream not found'}), 404
 
-        comments_result = try_supabase(
-            lambda: supabase.table("stream_comments").select("*").eq("stream_id", stream_id).order("created_at", desc=True).limit(50).execute(),
-            None
-        )
-        comments = comments_result.data if comments_result else []
-        if not comments:
-            comments = [c for c in SEED_COMMENTS if c['stream_id'] == stream_id]
+        comments = [c for c in SEED_COMMENTS if c['stream_id'] == stream_id]
+        if db_ready() and len(str(stream_id)) >= 32:
+            comments_result = try_supabase(
+                lambda: supabase.table("stream_comments").select("*").eq("stream_id", stream_id).order("created_at", desc=True).limit(50).execute(),
+                None
+            )
+            if comments_result and comments_result.data:
+                comments = comments_result.data
 
-        return jsonify({'stream': stream, 'comments': comments}), 200
+        reaction_counts = reaction_store.get_counts('stream', stream_id)
+        return jsonify({
+            'stream': stream,
+            'comments': comments,
+            'reactions': reaction_counts,
+            'reaction_total': sum(reaction_counts.values()),
+        }), 200
     except Exception as e:
         stream = next((s for s in STREAM_STORE if str(s['id']) == str(stream_id)), None)
         if not stream:
             return jsonify({'error': 'Stream not found'}), 404
         comments = [c for c in SEED_COMMENTS if c['stream_id'] == stream_id]
-        return jsonify({'stream': stream, 'comments': comments}), 200
+        reaction_counts = reaction_store.get_counts('stream', stream_id)
+        return jsonify({
+            'stream': stream,
+            'comments': comments,
+            'reactions': reaction_counts,
+            'reaction_total': sum(reaction_counts.values()),
+        }), 200
+
+
+@app.route('/api/live/streams/<stream_id>/like', methods=['POST'])
+def like_stream(stream_id):
+    """Increment stream like / Amen count."""
+    stream = next((s for s in STREAM_STORE if str(s['id']) == str(stream_id)), None)
+    if stream is not None:
+        stream['like_count'] = (stream.get('like_count') or 0) + 1
+        like_count = stream['like_count']
+    else:
+        like_count = None
+        if db_ready():
+            try:
+                cur = db_execute(
+                    lambda client: client.table("live_streams").select("like_count").eq("id", stream_id).single().execute()
+                )
+                like_count = (cur.data.get('like_count') or 0) + 1 if cur.data else 1
+                db_execute(
+                    lambda client: client.table("live_streams").update({"like_count": like_count}).eq("id", stream_id).execute()
+                )
+            except Exception as e:
+                print(f"Like DB error: {e}")
+                like_count = 1
+
+    counts = reaction_store.add_reaction('stream', stream_id, 'amen')
+    socketio.emit('like_update', {
+        'stream_id': stream_id,
+        'like_count': like_count if like_count is not None else counts.get('amen', 0),
+    }, room=f'stream_{stream_id}')
+    socketio.emit('reaction_counts_updated', {
+        'content_id': stream_id,
+        'content_type': 'stream',
+        'counts': counts,
+        'type': 'amen',
+        'emoji': reaction_store.EMOJI_MAP['amen'],
+    }, room=f'stream_{stream_id}')
+
+    return jsonify({
+        'status': 'ok',
+        'like_count': like_count,
+        'reactions': counts,
+    }), 200
+
+
+@app.route('/api/reactions/<content_type>/<content_id>', methods=['GET'])
+def get_reactions(content_type, content_id):
+    if content_type not in ('stream', 'media'):
+        return jsonify({'error': 'Invalid content type'}), 400
+    counts = reaction_store.get_counts(content_type, content_id)
+    return jsonify({
+        'counts': counts,
+        'total': sum(counts.values()),
+        'types': list(reaction_store.REACTION_TYPES),
+    }), 200
+
+
+@app.route('/api/reactions/<content_type>/<content_id>', methods=['POST'])
+def post_reaction(content_type, content_id):
+    if content_type not in ('stream', 'media'):
+        return jsonify({'error': 'Invalid content type'}), 400
+    data = request.get_json(silent=True) or {}
+    reaction_type = data.get('type') or 'amen'
+    counts = reaction_store.add_reaction(content_type, content_id, reaction_type)
+    normalized = reaction_store.normalize_type(reaction_type)
+    emoji = reaction_store.EMOJI_MAP.get(normalized, '🙏')
+
+    payload = {
+        'content_id': content_id,
+        'content_type': content_type,
+        'stream_id': content_id if content_type == 'stream' else None,
+        'type': normalized,
+        'emoji': emoji,
+        'counts': counts,
+        'timestamp': datetime.utcnow().isoformat(),
+    }
+    if content_type == 'stream':
+        socketio.emit('reaction_counts_updated', payload, room=f'stream_{content_id}')
+        socketio.emit('reaction', payload, room=f'stream_{content_id}')
+
+    # Bump media like_count lightly for love/amen
+    if content_type == 'media' and normalized in ('amen', 'love'):
+        for m in MEDIA_STORE:
+            if str(m.get('id')) == str(content_id):
+                m['like_count'] = (m.get('like_count') or 0) + 1
+                break
+
+    return jsonify({'status': 'ok', 'counts': counts, 'type': normalized, 'emoji': emoji}), 200
 
 @app.route('/api/live/streams/<stream_id>/comments', methods=['GET'])
 def get_stream_comments(stream_id):
@@ -525,7 +628,14 @@ def get_media_item(media_id):
             media = None
     if not media:
         return jsonify({'error': 'Not found'}), 404
-    return jsonify({'media': media}), 200
+    # Increment view count realistically when opened
+    media['view_count'] = (media.get('view_count') or 0) + 1
+    counts = reaction_store.get_counts('media', media_id)
+    return jsonify({
+        'media': media,
+        'reactions': counts,
+        'reaction_total': sum(counts.values()),
+    }), 200
 
 @app.route('/api/media/series', methods=['GET'])
 def get_all_series():
@@ -756,11 +866,22 @@ def handle_join_stream(data):
     # Update viewer count
     stream = next((s for s in STREAM_STORE if str(s['id']) == str(stream_id)), None)
     if stream:
-        stream['viewer_count'] += 1
-        socketio.emit('viewer_count_updated', {
+        stream['viewer_count'] = (stream.get('viewer_count') or 0) + 1
+        payload = {
             'stream_id': stream_id,
             'viewer_count': stream['viewer_count']
-        }, room=room)
+        }
+        # Emit both event names for frontend compatibility
+        socketio.emit('viewer_count_updated', payload, room=room)
+        socketio.emit('viewer_update', payload, room=room)
+
+    # Send current reaction totals to the joining client
+    counts = reaction_store.get_counts('stream', stream_id)
+    emit('reaction_counts_updated', {
+        'content_id': stream_id,
+        'content_type': 'stream',
+        'counts': counts,
+    })
 
 @socketio.on('leave_stream')
 def handle_leave_stream(data):
@@ -771,22 +892,34 @@ def handle_leave_stream(data):
     stream = next((s for s in STREAM_STORE if str(s['id']) == str(stream_id)), None)
     if stream:
         stream['viewer_count'] = max(0, (stream.get('viewer_count') or 0) - 1)
-        socketio.emit('viewer_count_updated', {
+        payload = {
             'stream_id': stream_id,
             'viewer_count': stream['viewer_count']
-        }, room=room)
+        }
+        socketio.emit('viewer_count_updated', payload, room=room)
+        socketio.emit('viewer_update', payload, room=room)
 
     emit('left_stream', {'stream_id': stream_id})
 
 @socketio.on('stream_reaction')
 def handle_reaction(data):
     stream_id = data.get('stream_id')
-    reaction_type = data.get('type', 'like')
-    socketio.emit('reaction', {
+    reaction_type = data.get('type', 'amen')
+    content_type = data.get('content_type') or 'stream'
+    counts = reaction_store.add_reaction(content_type, stream_id, reaction_type)
+    normalized = reaction_store.normalize_type(reaction_type)
+    payload = {
         'stream_id': stream_id,
-        'type': reaction_type,
+        'content_id': stream_id,
+        'content_type': content_type,
+        'type': normalized,
+        'emoji': reaction_store.EMOJI_MAP.get(normalized, '🙏'),
+        'counts': counts,
         'timestamp': datetime.utcnow().isoformat()
-    }, room=f'stream_{stream_id}', include_self=False)
+    }
+    room = f'stream_{stream_id}'
+    socketio.emit('reaction', payload, room=room)
+    socketio.emit('reaction_counts_updated', payload, room=room)
 
 @socketio.on('post_comment')
 def handle_socket_comment(data):

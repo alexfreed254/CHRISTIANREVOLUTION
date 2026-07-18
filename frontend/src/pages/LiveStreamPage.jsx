@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Users, Heart, Share2, Globe, Send } from 'lucide-react'
+import { Users, Heart, Share2, Globe } from 'lucide-react'
 import axios from 'axios'
 import ReactPlayer from 'react-player'
 import { io } from 'socket.io-client'
@@ -10,12 +9,15 @@ import toast from 'react-hot-toast'
 import GlassCard from '../components/common/GlassCard'
 import LiveBadge from '../components/common/LiveBadge'
 import LiveChat from '../components/chat/LiveChat'
+import ReactionBar from '../components/common/ReactionBar'
 import Footer from '../components/common/Footer'
 
 export default function LiveStreamPage() {
-  const { streamId } = useParams()
+  const { streamId: paramId } = useParams()
+  const [streamId, setStreamId] = useState(paramId || null)
   const [stream, setStream] = useState(null)
   const [comments, setComments] = useState([])
+  const [reactions, setReactions] = useState(null)
   const [loading, setLoading] = useState(true)
   const [viewerCount, setViewerCount] = useState(0)
   const [liked, setLiked] = useState(false)
@@ -23,27 +25,75 @@ export default function LiveStreamPage() {
   const socketRef = useRef(null)
 
   useEffect(() => {
-    fetchStream()
-    
-    // Connect to Socket.IO for real-time updates
-    const socket = io('', { query: { streamId } })
+    let active = true
+    const boot = async () => {
+      let id = paramId
+      if (!id) {
+        try {
+          const list = await axios.get('/api/live/streams')
+          const live = (list.data.streams || []).find((s) => s.status === 'live') || (list.data.streams || [])[0]
+          id = live?.id
+          if (active) setStreamId(id)
+        } catch {
+          toast.error('Failed to load streams')
+          setLoading(false)
+          return
+        }
+      }
+      if (!id) {
+        setLoading(false)
+        return
+      }
+      try {
+        const res = await axios.get(`/api/live/streams/${id}`)
+        if (!active) return
+        setStream(res.data.stream)
+        setComments(res.data.comments || [])
+        setReactions(res.data.reactions || null)
+        setViewerCount(res.data.stream.viewer_count || 0)
+      } catch (err) {
+        console.error(err)
+        toast.error('Failed to load stream')
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+    boot()
+    return () => { active = false }
+  }, [paramId])
+
+  useEffect(() => {
+    if (!streamId) return
+
+    const socket = io('', { transports: ['websocket', 'polling'] })
     socketRef.current = socket
 
     socket.on('connect', () => {
-      console.log('Connected to stream')
       socket.emit('join_stream', { stream_id: streamId })
     })
 
     socket.on('new_comment', (comment) => {
-      setComments(prev => [comment, ...prev])
+      setComments((prev) => [comment, ...prev])
     })
 
-    socket.on('viewer_update', (data) => {
-      setViewerCount(data.viewer_count)
-    })
+    const onViewer = (data) => {
+      if (String(data.stream_id) === String(streamId)) {
+        setViewerCount(data.viewer_count)
+      }
+    }
+    socket.on('viewer_update', onViewer)
+    socket.on('viewer_count_updated', onViewer)
 
     socket.on('like_update', (data) => {
-      setStream(prev => prev ? { ...prev, like_count: data.like_count } : null)
+      if (String(data.stream_id) === String(streamId)) {
+        setStream((prev) => (prev ? { ...prev, like_count: data.like_count } : null))
+      }
+    })
+
+    socket.on('reaction_counts_updated', (data) => {
+      if (String(data.content_id) === String(streamId) && data.counts) {
+        setReactions(data.counts)
+      }
     })
 
     return () => {
@@ -52,37 +102,23 @@ export default function LiveStreamPage() {
     }
   }, [streamId])
 
-  const fetchStream = async () => {
-    try {
-      const res = await axios.get(`/api/live/streams/${streamId}`)
-      setStream(res.data.stream)
-      setComments(res.data.comments || [])
-      setViewerCount(res.data.stream.viewer_count || 0)
-    } catch (err) {
-      console.error('Failed to fetch stream:', err)
-      toast.error('Failed to load stream')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleLike = async () => {
     if (!user) {
-      toast.error('Please login to like')
+      toast.error('Please login to react')
       return
     }
-
     try {
-      await axios.post(`/api/live/streams/${streamId}/like`, {}, {
+      const res = await axios.post(`/api/live/streams/${streamId}/like`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      setLiked(!liked)
-      setStream(prev => ({
-        ...prev,
-        like_count: liked ? prev.like_count - 1 : prev.like_count + 1
-      }))
+      setLiked(true)
+      if (res.data.like_count != null) {
+        setStream((prev) => ({ ...prev, like_count: res.data.like_count }))
+      }
+      if (res.data.reactions) setReactions(res.data.reactions)
     } catch (err) {
       console.error('Like error:', err)
+      toast.error('Could not save reaction')
     }
   }
 
@@ -118,13 +154,13 @@ export default function LiveStreamPage() {
     )
   }
 
+  const reactionTotal = reactions ? Object.values(reactions).reduce((a, b) => a + (Number(b) || 0), 0) : 0
+
   return (
     <div className="min-h-screen pt-20 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Video Player */}
             <GlassCard className="overflow-hidden">
               <div className="relative aspect-video bg-black">
                 <ReactPlayer
@@ -133,13 +169,7 @@ export default function LiveStreamPage() {
                   controls={true}
                   width="100%"
                   height="100%"
-                  config={{
-                    file: {
-                      attributes: {
-                        controlsList: 'nodownload'
-                      }
-                    }
-                  }}
+                  config={{ file: { attributes: { controlsList: 'nodownload' } } }}
                 />
                 {stream.status === 'live' && (
                   <div className="absolute top-4 left-4">
@@ -149,7 +179,6 @@ export default function LiveStreamPage() {
               </div>
             </GlassCard>
 
-            {/* Stream Info */}
             <GlassCard className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
@@ -163,11 +192,10 @@ export default function LiveStreamPage() {
 
               <p className="text-crm-gray-light mb-4">{stream.description}</p>
 
-              {/* Topics */}
               {stream.topics && (
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {stream.topics.map(topic => (
-                    <span 
+                  {stream.topics.map((topic) => (
+                    <span
                       key={topic}
                       className="px-3 py-1 text-xs rounded-full bg-crm-purple/10 text-crm-purple border border-crm-purple/20"
                     >
@@ -177,24 +205,30 @@ export default function LiveStreamPage() {
                 </div>
               )}
 
-              {/* Stats & Actions */}
-              <div className="flex items-center gap-4 pt-4 border-t border-white/10">
+              <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-white/10">
                 <div className="flex items-center gap-2 text-crm-gray">
-                  <Users className="w-5 h-5" />
-                  <span className="font-medium">{viewerCount.toLocaleString()}</span>
+                  <Users className="w-5 h-5 text-crm-live" />
+                  <span className="font-medium text-crm-white">{viewerCount.toLocaleString()}</span>
                   <span className="text-sm">watching</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-crm-gray">
+                  <span className="text-lg">🙏</span>
+                  <span className="font-medium text-crm-white">{reactionTotal.toLocaleString()}</span>
+                  <span className="text-sm">reactions</span>
                 </div>
 
                 <button
                   onClick={handleLike}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                    liked 
-                      ? 'bg-crm-live/20 text-crm-live' 
+                    liked
+                      ? 'bg-crm-live/20 text-crm-live'
                       : 'bg-white/5 text-crm-gray hover:bg-white/10 hover:text-crm-white'
                   }`}
                 >
                   <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
-                  <span className="font-medium">{stream.like_count?.toLocaleString()}</span>
+                  <span className="font-medium">{(stream.like_count || 0).toLocaleString()}</span>
+                  <span className="text-sm">Amen</span>
                 </button>
 
                 <button
@@ -214,20 +248,27 @@ export default function LiveStreamPage() {
                   </div>
                 )}
               </div>
+
+              <ReactionBar
+                contentId={streamId}
+                contentType="stream"
+                socket={socketRef.current}
+                initialCounts={reactions}
+              />
             </GlassCard>
           </div>
 
-          {/* Live Chat Sidebar */}
           <div className="lg:col-span-1">
-            <LiveChat 
+            <LiveChat
               streamId={streamId}
               comments={comments}
               socket={socketRef.current}
+              initialReactions={reactions}
             />
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   )

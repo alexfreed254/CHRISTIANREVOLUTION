@@ -6,6 +6,7 @@ import { ArrowLeft, Play, Eye, Heart, Share2, Clock, User } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import Footer from '../components/common/Footer'
+import ReactionBar from '../components/common/ReactionBar'
 import { usePlayer } from '../context/PlayerContext'
 
 export default function MediaWatch() {
@@ -13,6 +14,7 @@ export default function MediaWatch() {
   const navigate = useNavigate()
   const { playTrack } = usePlayer()
   const [media, setMedia] = useState(null)
+  const [reactions, setReactions] = useState(null)
   const [loading, setLoading] = useState(true)
   const [playing, setPlaying] = useState(true)
 
@@ -25,6 +27,7 @@ export default function MediaWatch() {
     try {
       const res = await axios.get(`/api/media/${mediaId}`)
       setMedia(res.data.media)
+      setReactions(res.data.reactions || null)
     } catch (err) {
       console.error(err)
       toast.error('Media not found')
@@ -92,11 +95,19 @@ export default function MediaWatch() {
               <div className="flex flex-wrap items-center gap-4 text-sm text-crm-gray mb-6">
                 <span className="flex items-center gap-1.5"><User className="w-4 h-4" />{media.speaker || 'CRM'}</span>
                 <span className="flex items-center gap-1.5"><Eye className="w-4 h-4" />{(media.view_count || 0).toLocaleString()} views</span>
+                <span className="flex items-center gap-1.5"><Heart className="w-4 h-4" />{(media.like_count || 0).toLocaleString()} amens</span>
                 <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" />{formatDuration(media.duration || media.duration_seconds || 0)}</span>
                 {media.bible_reference && <span className="text-crm-purple">{media.bible_reference}</span>}
               </div>
+
+              <ReactionBar
+                contentId={mediaId}
+                contentType="media"
+                initialCounts={reactions}
+              />
+
               {media.description && (
-                <p className="text-crm-gray-light leading-relaxed mb-6">{media.description}</p>
+                <p className="text-crm-gray-light leading-relaxed mb-6 mt-6">{media.description}</p>
               )}
               {media.topics?.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-6">
