@@ -12,13 +12,14 @@ import VideoCard from '../components/media/VideoCard'
 import SeriesCarousel from '../components/media/SeriesCarousel'
 import BrandLogo from '../components/common/BrandLogo'
 import { usePlayer } from '../context/PlayerContext'
+import useLiveStats from '../hooks/useLiveStats'
 
 export default function Home() {
   const [liveStream, setLiveStream] = useState(null)
   const [trendingMedia, setTrendingMedia] = useState([])
   const [series, setSeries] = useState([])
   const [nextService, setNextService] = useState(null)
-  const [stats, setStats] = useState({ members: 0, countries: 0, souls: 0 })
+  const { stats } = useLiveStats({ pollMs: 20000 })
   const { playTrack } = usePlayer()
 
   useEffect(() => {
@@ -47,22 +48,6 @@ export default function Home() {
       nextSunday.setDate(now.getDate() + daysUntilSunday)
       nextSunday.setHours(10, 0, 0, 0)
       setNextService(nextSunday)
-
-      // Live platform snapshot (realistic CRM scale — not inflated fantasy numbers)
-      let memberCount = 12840
-      try {
-        const health = await axios.get('/api/health')
-        if (health.data?.database === 'connected') {
-          // Prefer real member count when available via public streams/media activity
-          memberCount = Math.max(12840, (mediaRes.data.total || 0) * 160 + 4200)
-        }
-      } catch { /* keep baseline */ }
-
-      setStats({
-        members: memberCount,
-        countries: 42,
-        souls: 186000
-      })
     } catch (err) {
       console.error('Failed to fetch home data:', err)
     }
@@ -75,6 +60,13 @@ export default function Home() {
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
     const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
     return `${days}d ${hours}h ${mins}m`
+  }
+
+  const formatStat = (n) => {
+    const v = Number(n) || 0
+    if (v >= 1000000) return `${(v / 1000000).toFixed(1)}M+`
+    if (v >= 1000) return `${(v / 1000).toFixed(1)}K+`
+    return `${v}`
   }
 
   return (
@@ -180,11 +172,7 @@ export default function Home() {
             >
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-crm-purple">
-                  {stats.members >= 1000000
-                    ? `${(stats.members / 1000000).toFixed(1)}M+`
-                    : stats.members >= 1000
-                      ? `${(stats.members / 1000).toFixed(1)}K+`
-                      : `${stats.members}+`}
+                  {formatStat(stats.members)}
                 </div>
                 <div className="text-xs text-crm-gray uppercase tracking-wider mt-1">Members</div>
               </div>
@@ -194,11 +182,7 @@ export default function Home() {
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-crm-purple">
-                  {stats.souls >= 1000000
-                    ? `${(stats.souls / 1000000).toFixed(1)}M+`
-                    : stats.souls >= 1000
-                      ? `${Math.round(stats.souls / 1000)}K+`
-                      : `${stats.souls}+`}
+                  {formatStat(stats.souls)}
                 </div>
                 <div className="text-xs text-crm-gray uppercase tracking-wider mt-1">Souls Reached</div>
               </div>

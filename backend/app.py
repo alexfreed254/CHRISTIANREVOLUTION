@@ -16,10 +16,12 @@ try:
     from .supabase_client import supabase, db_ready, get_supabase, db_execute
     from .auth import hash_password, verify_password, generate_unique_id
     from . import reactions as reaction_store
+    from . import live_stats as live_stats_mod
 except ImportError:
     from supabase_client import supabase, db_ready, get_supabase, db_execute
     from auth import hash_password, verify_password, generate_unique_id
     import reactions as reaction_store
+    import live_stats as live_stats_mod
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DIST_DIR = BASE_DIR / 'frontend' / 'dist'
@@ -136,6 +138,25 @@ SEED_PRAYERS = [
 MEDIA_STORE = list(SEED_MEDIA)
 STREAM_STORE = list(SEED_STREAMS)
 
+# Connected Socket.IO clients (approximate online count)
+CONNECTED_CLIENTS = set()
+
+
+def snapshot_stats():
+    return live_stats_mod.build_live_stats(
+        supabase=supabase,
+        db_ready=db_ready(),
+        try_supabase=try_supabase,
+        STREAM_STORE=STREAM_STORE,
+        MEDIA_STORE=MEDIA_STORE,
+        reaction_store=reaction_store,
+        connected_clients=len(CONNECTED_CLIENTS),
+    )
+
+
+def broadcast_stats():
+    live_stats_mod.emit_platform_stats(socketio, snapshot_stats())
+
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
@@ -178,8 +199,15 @@ def health_check():
         'status': 'ok',
         'service': 'CRM Central Command',
         'database': 'connected' if db_ready() else 'disconnected',
+        'online_now': len(CONNECTED_CLIENTS),
         'time': datetime.utcnow().isoformat()
     }), 200
+
+
+@app.route('/api/stats/live', methods=['GET'])
+def public_live_stats():
+    """Realtime platform statistics for home / public dashboards."""
+    return jsonify(snapshot_stats()), 200
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -246,6 +274,7 @@ def register():
 
         member_data = public_member(result.data[0])
         token = create_access_token(identity=str(member_data['id']))
+        broadcast_stats()
         return jsonify({'token': token, 'member': member_data}), 201
 
     except Exception as e:
@@ -332,6 +361,55 @@ def get_me():
     except Exception as e:
         print(f"Get me error: {e}")
         return jsonify({'error': 'Member not found'}), 404
+
+
+@app.route('/api/me/stats', methods=['GET'])
+@jwt_required()
+def get_my_stats():
+    """Personal realtime stats for the member portal."""
+    db_error = require_db()
+    if db_error:
+        return db_error
+
+    try:
+        member_id = get_jwt_identity()
+        member = db_execute(
+            lambda client: client.table("members").select("*").eq("id", member_id).single().execute()
+        )
+        if not member.data:
+            return jsonify({'error': 'Member not found'}), 404
+
+        attendance = try_supabase(
+            lambda: supabase.table("attendance").select("id", count="exact").eq("member_id", member_id).execute(),
+            None,
+        )
+        giving = try_supabase(
+            lambda: supabase.table("giving").select("amount").eq("member_id", member_id).execute(),
+            None,
+        )
+
+        attendance_count = 0
+        if attendance:
+            if getattr(attendance, "count", None) is not None:
+                attendance_count = int(attendance.count or 0)
+            elif attendance.data:
+                attendance_count = len(attendance.data)
+
+        giving_total = 0.0
+        if giving and giving.data:
+            giving_total = sum(float(g.get("amount") or 0) for g in giving.data)
+
+        return jsonify({
+            'attendance': attendance_count,
+            'streak': member.data.get('streak') or 0,
+            'coursesCompleted': 0,
+            'givingTotal': round(giving_total, 2),
+            'engagementScore': member.data.get('engagement_score') or 0,
+            'updated_at': datetime.utcnow().isoformat() + 'Z',
+        }), 200
+    except Exception as e:
+        print(f"Get my stats error: {e}")
+        return jsonify({'error': 'Failed to load stats', 'message': str(e)}), 500
 
 # ============================================================================
 # LIVE STREAMING ROUTES (with seed data fallback)
@@ -434,6 +512,7 @@ def like_stream(stream_id):
         'emoji': reaction_store.EMOJI_MAP['amen'],
     }, room=f'stream_{stream_id}')
 
+    broadcast_stats()
     return jsonify({
         'status': 'ok',
         'like_count': like_count,
@@ -483,6 +562,7 @@ def post_reaction(content_type, content_id):
                 m['like_count'] = (m.get('like_count') or 0) + 1
                 break
 
+    broadcast_stats()
     return jsonify({'status': 'ok', 'counts': counts, 'type': normalized, 'emoji': emoji}), 200
 
 @app.route('/api/live/streams/<stream_id>/comments', methods=['GET'])
@@ -713,6 +793,7 @@ def create_prayer():
         )
         if not result.data:
             return jsonify({'error': 'Failed to save prayer request'}), 500
+        broadcast_stats()
         return jsonify({'prayer': result.data[0]}), 201
     except Exception as e:
         print(f"Create prayer error: {e}")
@@ -773,6 +854,7 @@ def process_giving():
         if not result.data:
             return jsonify({'error': 'Failed to record giving'}), 500
 
+        broadcast_stats()
         return jsonify({
             'message': 'Giving recorded successfully',
             'receipt': result.data[0]
@@ -836,8 +918,10 @@ def check_in():
                     "last_seen": datetime.utcnow().isoformat()
                 }).eq("id", member_id).execute()
             )
+            broadcast_stats()
             return jsonify({'status': 'ok', 'score': new_score, 'streak': new_streak}), 200
 
+        broadcast_stats()
         return jsonify({'status': 'ok'}), 200
     except Exception as e:
         print(f"Attendance error: {e}")
@@ -849,12 +933,16 @@ def check_in():
 
 @socketio.on('connect')
 def handle_connect():
-    print(f'Client connected: {request.sid}')
-    emit('connected', {'status': 'connected'})
+    CONNECTED_CLIENTS.add(request.sid)
+    print(f'Client connected: {request.sid} (online={len(CONNECTED_CLIENTS)})')
+    emit('connected', {'status': 'connected', 'online_now': len(CONNECTED_CLIENTS)})
+    emit('platform_stats_updated', snapshot_stats())
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print(f'Client disconnected: {request.sid}')
+    CONNECTED_CLIENTS.discard(request.sid)
+    print(f'Client disconnected: {request.sid} (online={len(CONNECTED_CLIENTS)})')
+    broadcast_stats()
 
 @socketio.on('join_stream')
 def handle_join_stream(data):
@@ -882,6 +970,7 @@ def handle_join_stream(data):
         'content_type': 'stream',
         'counts': counts,
     })
+    broadcast_stats()
 
 @socketio.on('leave_stream')
 def handle_leave_stream(data):
@@ -900,6 +989,7 @@ def handle_leave_stream(data):
         socketio.emit('viewer_update', payload, room=room)
 
     emit('left_stream', {'stream_id': stream_id})
+    broadcast_stats()
 
 @socketio.on('stream_reaction')
 def handle_reaction(data):
@@ -920,6 +1010,7 @@ def handle_reaction(data):
     room = f'stream_{stream_id}'
     socketio.emit('reaction', payload, room=room)
     socketio.emit('reaction_counts_updated', payload, room=room)
+    broadcast_stats()
 
 @socketio.on('post_comment')
 def handle_socket_comment(data):
@@ -961,6 +1052,8 @@ register_admin_routes(
     SEED_SERIES=SEED_SERIES,
     MEDIA_STORE=MEDIA_STORE,
     STREAM_STORE=STREAM_STORE,
+    snapshot_stats=snapshot_stats,
+    broadcast_stats=broadcast_stats,
 )
 
 # ============================================================================

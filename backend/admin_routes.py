@@ -16,7 +16,8 @@ ADMIN_ROLES = {"admin", "super_admin"}
 
 
 def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_supabase,
-                          public_member, SEED_MEDIA, SEED_STREAMS, SEED_SERIES, MEDIA_STORE, STREAM_STORE):
+                          public_member, SEED_MEDIA, SEED_STREAMS, SEED_SERIES, MEDIA_STORE, STREAM_STORE,
+                          snapshot_stats=None, broadcast_stats=None):
     """Attach /api/admin/* routes to the Flask app."""
 
     def _get_member(member_id: str):
@@ -61,10 +62,20 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
         out.setdefault('type', row.get('type') or row.get('media_type') or 'video')
         return out
 
+    def _notify_stats():
+        if callable(broadcast_stats):
+            try:
+                broadcast_stats()
+            except Exception as e:
+                print(f"admin stats broadcast failed: {e}")
+
     # ── Stats ──────────────────────────────────────────────────────────────
     @app.route('/api/admin/stats', methods=['GET'])
     @admin_required
     def admin_stats():
+        if callable(snapshot_stats):
+            return jsonify(snapshot_stats()), 200
+
         members = try_supabase(lambda: supabase.table("members").select("id", count="exact").execute(), None)
         giving = try_supabase(lambda: supabase.table("giving").select("amount").execute(), None)
         prayers = try_supabase(lambda: supabase.table("prayer_requests").select("id", count="exact").execute(), None)
@@ -85,6 +96,9 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
                         else len(STREAM_STORE)),
             'media': len(MEDIA_STORE),
             'live_now': sum(1 for s in STREAM_STORE if s.get('status') == 'live'),
+            'online_now': 0,
+            'watching_now': 0,
+            'reactions': 0,
         }), 200
 
     # ── Members ────────────────────────────────────────────────────────────
@@ -184,6 +198,7 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
                 if result.data:
                     created = result.data[0]
                     STREAM_STORE.insert(0, created)
+                    _notify_stats()
                     return jsonify({'stream': created}), 201
             except Exception as e:
                 print(f"Stream DB insert failed, using memory: {e}")
@@ -191,6 +206,7 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
         row['id'] = f"stream-{secrets.token_hex(4)}"
         row['started_at'] = row.get('started_at')
         STREAM_STORE.insert(0, row)
+        _notify_stats()
         return jsonify({'stream': row}), 201
 
     @app.route('/api/admin/streams/<stream_id>', methods=['PATCH'])
@@ -216,6 +232,7 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
                         if str(s.get('id')) == str(stream_id):
                             STREAM_STORE[i] = {**s, **updated}
                             break
+                    _notify_stats()
                     return jsonify({'stream': updated}), 200
             except Exception as e:
                 print(f"Stream DB update failed: {e}")
@@ -223,6 +240,7 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
         for i, s in enumerate(STREAM_STORE):
             if str(s.get('id')) == str(stream_id):
                 STREAM_STORE[i] = {**s, **updates}
+                _notify_stats()
                 return jsonify({'stream': STREAM_STORE[i]}), 200
         return jsonify({'error': 'Stream not found'}), 404
 
@@ -235,6 +253,7 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
             except Exception as e:
                 print(f"Stream delete DB error: {e}")
         STREAM_STORE[:] = [s for s in STREAM_STORE if str(s.get('id')) != str(stream_id)]
+        _notify_stats()
         return jsonify({'status': 'ok'}), 200
 
     # ── Media ──────────────────────────────────────────────────────────────
@@ -299,6 +318,7 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
                 print(f"Media DB insert failed, using memory: {e}")
 
         MEDIA_STORE.insert(0, item)
+        _notify_stats()
         return jsonify({'media': item}), 201
 
     @app.route('/api/admin/media/<media_id>', methods=['PATCH'])
@@ -324,6 +344,7 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
                             db_execute(lambda client: client.table("media").update(db_updates).eq("id", media_id).execute())
                     except Exception as e:
                         print(f"Media DB update: {e}")
+                _notify_stats()
                 return jsonify({'media': normalize_media_row(updated)}), 200
         return jsonify({'error': 'Media not found'}), 404
 
@@ -336,6 +357,7 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
                 db_execute(lambda client: client.table("media").delete().eq("id", media_id).execute())
             except Exception as e:
                 print(f"Media delete: {e}")
+        _notify_stats()
         return jsonify({'status': 'ok'}), 200
 
     # ── Giving ─────────────────────────────────────────────────────────────

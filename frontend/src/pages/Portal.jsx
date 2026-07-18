@@ -5,12 +5,13 @@ import {
   User, TrendingUp, Calendar, BookOpen, Heart, DollarSign,
   Award, Target, Flame, ChevronRight, LogOut, Shield
 } from 'lucide-react'
+import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
 import GlassCard from '../components/common/GlassCard'
 import Footer from '../components/common/Footer'
 
 export default function Portal() {
-  const { user, loading, logout } = useAuth()
+  const { user, token, loading, logout } = useAuth()
   const navigate = useNavigate()
   const [stats, setStats] = useState({
     attendance: 0,
@@ -21,16 +22,35 @@ export default function Portal() {
   })
 
   useEffect(() => {
-    if (user) {
-      setStats({
-        attendance: 24,
-        streak: user.streak || 0,
-        coursesCompleted: 3,
-        givingTotal: 500,
-        engagementScore: user.engagement_score || 0
-      })
+    if (!user || !token) return
+
+    const load = async () => {
+      try {
+        const res = await axios.get('/api/me/stats', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        setStats({
+          attendance: res.data.attendance || 0,
+          streak: res.data.streak ?? user.streak ?? 0,
+          coursesCompleted: res.data.coursesCompleted || 0,
+          givingTotal: res.data.givingTotal || 0,
+          engagementScore: res.data.engagementScore ?? user.engagement_score ?? 0
+        })
+      } catch {
+        setStats({
+          attendance: 0,
+          streak: user.streak || 0,
+          coursesCompleted: 0,
+          givingTotal: 0,
+          engagementScore: user.engagement_score || 0
+        })
+      }
     }
-  }, [user])
+
+    load()
+    const interval = setInterval(load, 20000)
+    return () => clearInterval(interval)
+  }, [user, token])
 
   const handleLogout = () => {
     logout()

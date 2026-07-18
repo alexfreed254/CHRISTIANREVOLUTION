@@ -96,3 +96,17 @@ def add_reaction(content_type: str, content_id: str, reaction_type: str) -> dict
 
 def total_reactions(content_type: str, content_id: str) -> int:
     return sum(get_counts(content_type, content_id).values())
+
+
+def global_reaction_total() -> int:
+    """Sum all reaction counters (touched + untouched seed baselines)."""
+    total = 0
+    touched_ids = set()
+    for key, counts in _COUNTS.items():
+        total += sum(int(v or 0) for v in counts.values())
+        if ":" in key:
+            touched_ids.add(key.split(":", 1)[1])
+    for content_id, seed in DEFAULT_SEED_COUNTS.items():
+        if content_id not in touched_ids:
+            total += sum(int(v or 0) for v in seed.values())
+    return total

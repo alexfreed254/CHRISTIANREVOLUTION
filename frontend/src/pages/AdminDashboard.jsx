@@ -8,6 +8,7 @@ import {
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
+import useLiveStats from '../hooks/useLiveStats'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -27,6 +28,7 @@ function authHeaders(token) {
 export default function AdminDashboard() {
   const { user, token, loading: authLoading } = useAuth()
   const [tab, setTab] = useState('overview')
+  const { stats: liveStats, refresh: refreshLiveStats } = useLiveStats({ pollMs: 10000 })
   const [stats, setStats] = useState(null)
   const [members, setMembers] = useState([])
   const [streams, setStreams] = useState([])
@@ -50,12 +52,20 @@ export default function AdminDashboard() {
     if (isAdmin && token) loadTab(tab)
   }, [tab, isAdmin, token])
 
+  // Keep overview cards in sync with socket broadcasts
+  useEffect(() => {
+    if (tab === 'overview' && liveStats) {
+      setStats((prev) => ({ ...(prev || {}), ...liveStats }))
+    }
+  }, [liveStats, tab])
+
   const loadTab = async (id) => {
     setLoading(true)
     try {
       if (id === 'overview') {
         const res = await axios.get('/api/admin/stats', authHeaders(token))
-        setStats(res.data)
+        setStats({ ...res.data, ...liveStats })
+        refreshLiveStats()
       } else if (id === 'users') {
         const res = await axios.get('/api/admin/members', { ...authHeaders(token), params: { q: memberQuery } })
         setMembers(res.data.members || [])
@@ -227,12 +237,17 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               ['Members', stats.members],
-              ['Live now', stats.live_now],
+              ['Online now', stats.online_now],
+              ['Watching now', stats.watching_now],
+              ['Live streams', stats.live_now],
               ['Media items', stats.media],
+              ['Reactions', stats.reactions],
               ['Donations', `$${Number(stats.giving_total || 0).toLocaleString()}`],
               ['Donation records', stats.giving_count],
               ['Prayer requests', stats.prayers],
+              ['Nations', stats.countries],
               ['Streams', stats.streams],
+              ['Souls reached', stats.souls ?? stats.souls_reached],
             ].map(([label, value]) => (
               <div key={label} className="p-5 rounded-2xl bg-crm-dark/60 border border-white/10">
                 <p className="text-crm-gray text-sm mb-1">{label}</p>
