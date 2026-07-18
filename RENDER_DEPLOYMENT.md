@@ -14,14 +14,20 @@ The dependency issues have been resolved! The project is now ready for deploymen
 - Simplified dependency tree
 - Both `requirements.txt` and `backend/requirements.txt` updated
 
-### 2. **Updated Render Configuration**
-- Fixed app import path: `backend.app:app`
+### 2. **Fixed Module Import Path**
+- Created root-level `app.py` entry point
+- This file imports from `backend/app.py`
+- Gunicorn now finds the app correctly
+- Proper WSGI application structure
+
+### 3. **Updated Render Configuration**
+- Fixed app import path: `app:app` (simpler)
 - Added pip upgrade step
 - Set Python version to 3.11.0
 - Changed plan from "standard" to "free" (you can change this)
 
-### 3. **Updated Procfile**
-- Fixed gunicorn import path to `backend.app:app`
+### 4. **Updated Procfile**
+- Fixed gunicorn import path to `app:app`
 
 ---
 
