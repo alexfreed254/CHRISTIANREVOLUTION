@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Cross, Globe, Radio, Library, Heart, User, LogIn, LogOut, Menu, X } from 'lucide-react'
+import { Cross, Globe, Radio, Library, Heart, User, LogIn, LogOut, Menu, X, Shield } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import BrandLogo from './BrandLogo'
 
@@ -69,6 +69,11 @@ export default function Navbar() {
             <div className="flex items-center gap-3">
               {user ? (
                 <div className="flex items-center gap-3">
+                  {['admin', 'super_admin'].includes(user.role) && (
+                    <Link to="/admin" className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-crm-purple text-crm-black font-semibold text-sm hover:opacity-90 transition-all">
+                      <Shield className="w-4 h-4" /> Admin
+                    </Link>
+                  )}
                   <Link to="/portal" className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg bg-crm-purple/10 border border-crm-purple/20 text-crm-purple hover:bg-crm-purple/20 transition-all">
                     <User className="w-4 h-4" />
                     <span className="text-sm font-medium">{user.full_name?.split(' ')[0]}</span>
@@ -116,6 +121,11 @@ export default function Navbar() {
               <div className="mt-8 pt-8 border-t border-white/10">
                 {user ? (
                   <div className="flex flex-col gap-3">
+                    {['admin', 'super_admin'].includes(user.role) && (
+                      <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-crm-purple text-crm-black font-semibold">
+                        <Shield className="w-5 h-5" /> <span className="font-medium">Admin Dashboard</span>
+                      </Link>
+                    )}
                     <Link to="/portal" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-crm-purple/10 text-crm-purple">
                       <User className="w-5 h-5" /> <span className="font-medium">My Portal</span>
                     </Link>

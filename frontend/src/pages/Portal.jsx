@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
   User, TrendingUp, Calendar, BookOpen, Heart, DollarSign,
-  Award, Target, Flame, ChevronRight, LogOut
+  Award, Target, Flame, ChevronRight, LogOut, Shield
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import GlassCard from '../components/common/GlassCard'
-import { useNavigate } from 'react-router-dom'
 import Footer from '../components/common/Footer'
 
 export default function Portal() {
@@ -70,13 +69,24 @@ export default function Portal() {
               </h1>
               <p className="text-crm-gray-light">Continue your discipleship journey</p>
             </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-crm-gray hover:bg-white/10 hover:text-crm-white transition-all"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
+            <div className="flex items-center gap-2">
+              {['admin', 'super_admin'].includes(user.role) && (
+                <Link
+                  to="/admin"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-crm-purple text-crm-black font-semibold hover:opacity-90 transition-all"
+                >
+                  <Shield className="w-4 h-4" />
+                  Admin
+                </Link>
+              )}
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-crm-gray hover:bg-white/10 hover:text-crm-white transition-all"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            </div>
           </div>
 
           {/* Member ID Card */}

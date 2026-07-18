@@ -58,7 +58,7 @@ export default function VideoCard({ media, index = 0, onPlayAudio }) {
             <p className="text-xs text-crm-gray mt-0.5">{media.speaker}</p>
             <div className="flex items-center gap-2 mt-1 text-xs text-crm-gray">
               <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{formatViews(media.view_count)}</span>
-              <span>•</span><span>{formatDistanceToNow(new Date(media.upload_date), { addSuffix: true })}</span>
+              <span>•</span><span>{media.upload_date ? formatDistanceToNow(new Date(media.upload_date), { addSuffix: true }) : 'Recently'}</span>
             </div>
           </div>
         </div>

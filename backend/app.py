@@ -130,6 +130,10 @@ SEED_PRAYERS = [
     {"id": "prayer-003", "member_id": "member-003", "member_name": "Marie Dubois", "member_location": "Paris, France", "content": "I need a breakthrough in my finances. I have been faithful in tithing but the enemy has been attacking my business.", "is_public": True, "prayer_count": 189, "is_answered": False, "created_at": (datetime.utcnow() - timedelta(hours=12)).isoformat()},
 ]
 
+# Mutable runtime stores (seed + admin-created items)
+MEDIA_STORE = list(SEED_MEDIA)
+STREAM_STORE = list(SEED_STREAMS)
+
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
@@ -289,6 +293,18 @@ def login():
         )
 
         member_data = public_member(member)
+        # Auto-promote configured bootstrap email
+        bootstrap = (os.environ.get('SUPERADMIN_EMAIL') or '').strip().lower()
+        if bootstrap and (member_data.get('email') or '').lower() == bootstrap and member_data.get('role') != 'super_admin':
+            try:
+                promoted = db_execute(
+                    lambda client: client.table("members").update({'role': 'super_admin'}).eq('id', member['id']).execute()
+                )
+                if promoted.data:
+                    member_data = public_member(promoted.data[0])
+            except Exception as e:
+                print(f"Superadmin bootstrap skipped: {e}")
+
         token = create_access_token(identity=str(member_data['id']))
         return jsonify({'token': token, 'member': member_data}), 200
 
@@ -326,11 +342,16 @@ def get_streams():
             lambda: supabase.table("live_streams").select("*").order("started_at", desc=True).execute(),
             None
         )
-        if result and result.data:
-            return jsonify({'streams': result.data, 'total': len(result.data)}), 200
-        return jsonify({'streams': SEED_STREAMS, 'total': len(SEED_STREAMS)}), 200
+        rows = list(result.data) if result and result.data else []
+        ids = {str(r.get('id')) for r in rows}
+        for s in STREAM_STORE:
+            if str(s.get('id')) not in ids:
+                rows.append(s)
+        if rows:
+            return jsonify({'streams': rows, 'total': len(rows)}), 200
+        return jsonify({'streams': STREAM_STORE, 'total': len(STREAM_STORE)}), 200
     except Exception as e:
-        return jsonify({'streams': SEED_STREAMS, 'total': len(SEED_STREAMS)}), 200
+        return jsonify({'streams': STREAM_STORE, 'total': len(STREAM_STORE)}), 200
 
 @app.route('/api/live/streams/<stream_id>', methods=['GET'])
 def get_stream(stream_id):
@@ -341,7 +362,7 @@ def get_stream(stream_id):
         )
         stream = result.data if result else None
         if not stream:
-            stream = next((s for s in SEED_STREAMS if s['id'] == stream_id), None)
+            stream = next((s for s in STREAM_STORE if str(s['id']) == str(stream_id)), None)
         if not stream:
             return jsonify({'error': 'Stream not found'}), 404
 
@@ -355,7 +376,7 @@ def get_stream(stream_id):
 
         return jsonify({'stream': stream, 'comments': comments}), 200
     except Exception as e:
-        stream = next((s for s in SEED_STREAMS if s['id'] == stream_id), None)
+        stream = next((s for s in STREAM_STORE if str(s['id']) == str(stream_id)), None)
         if not stream:
             return jsonify({'error': 'Stream not found'}), 404
         comments = [c for c in SEED_COMMENTS if c['stream_id'] == stream_id]
@@ -425,25 +446,47 @@ def get_media_library():
         page = int(request.args.get('page', 1))
         per_page = int(request.args.get('per_page', 12))
 
-        media = list(SEED_MEDIA)
+        media = list(MEDIA_STORE)
+
+        # Merge DB media if available
+        db_media = try_supabase(
+            lambda: supabase.table("media").select("*").order("published_at", desc=True).execute(),
+            None
+        )
+        if db_media and db_media.data:
+            existing_ids = {str(m.get('id')) for m in media}
+            for row in db_media.data:
+                mapped = {
+                    **row,
+                    'video_url': row.get('url'),
+                    'duration': row.get('duration_seconds') or 0,
+                    'upload_date': row.get('published_at') or row.get('created_at'),
+                    'topics': [],
+                    'available_languages': [row.get('language') or 'en'],
+                    'type': row.get('media_type') or 'video',
+                    'is_live': False,
+                    'is_new': False,
+                }
+                if str(mapped.get('id')) not in existing_ids:
+                    media.append(mapped)
 
         if topic != 'all':
-            media = [m for m in media if topic in m['topics']]
+            media = [m for m in media if topic in (m.get('topics') or [])]
         if language != 'all':
-            media = [m for m in media if language in m['available_languages']]
+            media = [m for m in media if language in (m.get('available_languages') or [m.get('language')])]
         if search:
-            media = [m for m in media if search in m['title'].lower() or search in m['speaker'].lower()]
+            media = [m for m in media if search in (m.get('title') or '').lower() or search in (m.get('speaker') or '').lower()]
 
         if sort == 'latest':
-            media.sort(key=lambda x: x['upload_date'], reverse=True)
+            media.sort(key=lambda x: x.get('upload_date') or '', reverse=True)
         elif sort == 'most_viewed':
-            media.sort(key=lambda x: x['view_count'], reverse=True)
+            media.sort(key=lambda x: x.get('view_count') or 0, reverse=True)
         elif sort == 'most_shared':
             media.sort(key=lambda x: x.get('share_count', 0), reverse=True)
         elif sort == 'longest':
-            media.sort(key=lambda x: x['duration'], reverse=True)
+            media.sort(key=lambda x: x.get('duration') or 0, reverse=True)
         elif sort == 'shortest':
-            media.sort(key=lambda x: x['duration'])
+            media.sort(key=lambda x: x.get('duration') or 0)
 
         total = len(media)
         start = (page - 1) * per_page
@@ -457,11 +500,29 @@ def get_media_library():
             'total_pages': (total + per_page - 1) // per_page
         }), 200
     except Exception as e:
-        return jsonify({'media': SEED_MEDIA[:12], 'total': len(SEED_MEDIA), 'page': 1, 'per_page': 12, 'total_pages': 1}), 200
+        return jsonify({'media': MEDIA_STORE[:12], 'total': len(MEDIA_STORE), 'page': 1, 'per_page': 12, 'total_pages': 1}), 200
 
 @app.route('/api/media/<media_id>', methods=['GET'])
 def get_media_item(media_id):
-    media = next((m for m in SEED_MEDIA if m['id'] == media_id), None)
+    media = next((m for m in MEDIA_STORE if str(m['id']) == str(media_id)), None)
+    if not media and db_ready():
+        try:
+            result = db_execute(
+                lambda client: client.table("media").select("*").eq("id", media_id).single().execute()
+            )
+            if result.data:
+                row = result.data
+                media = {
+                    **row,
+                    'video_url': row.get('url'),
+                    'duration': row.get('duration_seconds') or 0,
+                    'upload_date': row.get('published_at') or row.get('created_at'),
+                    'topics': [],
+                    'available_languages': [row.get('language') or 'en'],
+                    'type': row.get('media_type') or 'video',
+                }
+        except Exception:
+            media = None
     if not media:
         return jsonify({'error': 'Not found'}), 404
     return jsonify({'media': media}), 200
@@ -693,7 +754,7 @@ def handle_join_stream(data):
     emit('joined_stream', {'stream_id': stream_id})
 
     # Update viewer count
-    stream = next((s for s in SEED_STREAMS if s['id'] == stream_id), None)
+    stream = next((s for s in STREAM_STORE if str(s['id']) == str(stream_id)), None)
     if stream:
         stream['viewer_count'] += 1
         socketio.emit('viewer_count_updated', {
@@ -707,9 +768,9 @@ def handle_leave_stream(data):
     room = f'stream_{stream_id}'
     leave_room(room)
 
-    stream = next((s for s in SEED_STREAMS if s['id'] == stream_id), None)
+    stream = next((s for s in STREAM_STORE if str(s['id']) == str(stream_id)), None)
     if stream:
-        stream['viewer_count'] = max(0, stream['viewer_count'] - 1)
+        stream['viewer_count'] = max(0, (stream.get('viewer_count') or 0) - 1)
         socketio.emit('viewer_count_updated', {
             'stream_id': stream_id,
             'viewer_count': stream['viewer_count']
@@ -744,6 +805,30 @@ def handle_socket_comment(data):
     }
 
     socketio.emit('new_comment', comment, room=f'stream_{stream_id}')
+
+# ============================================================================
+# ADMIN ROUTES
+# ============================================================================
+
+try:
+    from .admin_routes import register_admin_routes
+except ImportError:
+    from admin_routes import register_admin_routes
+
+register_admin_routes(
+    app,
+    socketio=socketio,
+    supabase=supabase,
+    db_ready=db_ready,
+    db_execute=db_execute,
+    try_supabase=try_supabase,
+    public_member=public_member,
+    SEED_MEDIA=SEED_MEDIA,
+    SEED_STREAMS=SEED_STREAMS,
+    SEED_SERIES=SEED_SERIES,
+    MEDIA_STORE=MEDIA_STORE,
+    STREAM_STORE=STREAM_STORE,
+)
 
 # ============================================================================
 # FRONTEND SERVING (SPA ROUTING)

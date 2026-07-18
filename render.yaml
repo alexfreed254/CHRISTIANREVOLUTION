@@ -22,5 +22,7 @@ services:
         value: '*'
       - key: ENVIRONMENT
         value: production
+      - key: SUPERADMIN_EMAIL
+        sync: false
     healthCheckPath: /api/health
     autoDeploy: true
