@@ -10,6 +10,7 @@ import LiveBadge from '../components/common/LiveBadge'
 import GlassCard from '../components/common/GlassCard'
 import VideoCard from '../components/media/VideoCard'
 import SeriesCarousel from '../components/media/SeriesCarousel'
+import BrandLogo from '../components/common/BrandLogo'
 import { usePlayer } from '../context/PlayerContext'
 
 export default function Home() {
@@ -88,11 +89,7 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               className="mb-8"
             >
-              <img 
-                src="/logo.png" 
-                alt="Christ Revolution Movement" 
-                className="w-48 h-48 md:w-64 md:h-64 mx-auto object-contain"
-              />
+              <BrandLogo size="hero" priority className="mx-auto drop-shadow-[0_0_40px_rgba(139,127,199,0.45)]" />
             </motion.div>
 
             {/* Badge */}
@@ -387,11 +384,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <img 
-                src="/logo.png" 
-                alt="Christ Revolution Movement" 
-                className="w-12 h-12 object-contain"
-              />
+              <BrandLogo size="sm" />
               <div>
                 <h3 className="font-bold text-lg">Christ Revolution Movement</h3>
                 <p className="text-xs text-crm-gray">Discipling 2 Billion Souls by 2033</p>

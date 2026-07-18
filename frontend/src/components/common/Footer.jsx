@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import BrandLogo from './BrandLogo'
 
 export default function Footer() {
   return (
@@ -6,11 +7,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <img 
-              src="/logo.png" 
-              alt="Christ Revolution Movement" 
-              className="w-12 h-12 object-contain"
-            />
+            <BrandLogo size="sm" />
             <div>
               <h3 className="font-bold text-lg text-crm-white">Christ Revolution Movement</h3>
               <p className="text-xs text-crm-gray">Discipling 2 Billion Souls by 2033</p>

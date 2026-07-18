@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Cross, Globe, Radio, Library, Heart, User, LogIn, LogOut, Menu, X } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import BrandLogo from './BrandLogo'
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -38,15 +39,9 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-20">
+          <div className="flex items-center justify-between h-20 lg:h-24">
             <Link to="/" className="flex items-center gap-3 group">
-              <div className="relative w-12 h-12 flex items-center justify-center">
-                <img 
-                  src="/logo.png" 
-                  alt="Christ Revolution Movement" 
-                  className="w-full h-full object-contain group-hover:scale-105 transition-transform"
-                />
-              </div>
+              <BrandLogo size="nav" priority className="group-hover:scale-105 transition-transform drop-shadow-[0_0_12px_rgba(139,127,199,0.35)]" />
               <div className="hidden sm:block">
                 <h1 className="text-lg font-black tracking-wider uppercase leading-tight">
                   <span className="text-crm-white">Christ</span>

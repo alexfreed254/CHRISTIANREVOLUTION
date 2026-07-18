@@ -5,6 +5,7 @@ import { LogIn, Mail, Lock, Cross } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import toast from 'react-hot-toast'
 import GlassCard from '../components/common/GlassCard'
+import BrandLogo from '../components/common/BrandLogo'
 
 export default function Login() {
   const [formData, setFormData] = useState({ username: '', password: '' })
@@ -49,12 +50,8 @@ export default function Login() {
         >
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-24 h-24 mb-4">
-              <img 
-                src="/logo.png" 
-                alt="Christ Revolution Movement" 
-                className="w-full h-full object-contain"
-              />
+            <div className="flex justify-center mb-4">
+              <BrandLogo size="lg" priority />
             </div>
             <h1 className="text-3xl font-bold text-crm-white mb-2">Welcome Back</h1>
             <p className="text-crm-gray">Sign in to continue your journey</p>

@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import GlassCard from '../components/common/GlassCard'
+import BrandLogo from '../components/common/BrandLogo'
 import axios from 'axios'
 import Footer from '../components/common/Footer'
 
@@ -82,12 +83,8 @@ export default function Give() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <div className="inline-flex items-center justify-center w-20 h-20 mb-4">
-            <img 
-              src="/logo.png" 
-              alt="Christ Revolution Movement" 
-              className="w-full h-full object-contain"
-            />
+          <div className="flex justify-center mb-4">
+            <BrandLogo size="md" />
           </div>
           <h1 className="text-4xl font-bold text-crm-white mb-4">Support and Donations</h1>
           <p className="text-crm-gray-light max-w-2xl mx-auto">
