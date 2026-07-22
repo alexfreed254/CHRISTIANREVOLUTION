@@ -3,8 +3,9 @@ import { Navigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Users, Radio, Library, DollarSign, Heart,
-  Plus, Trash2, Save, RefreshCw, Shield, Search, Settings
+  Plus, Trash2, Save, RefreshCw, Shield, Search, Settings, BookMarked
 } from 'lucide-react'
+import SpiritualMaterialsAdmin from '../components/admin/SpiritualMaterialsAdmin'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import { useAuth } from '../context/AuthContext'
@@ -19,6 +20,7 @@ const TABS = [
   { id: 'streams', label: 'Streams', icon: Radio },
   { id: 'media', label: 'Media', icon: Library },
   { id: 'giving', label: 'Donations', icon: DollarSign },
+  { id: 'spiritual', label: 'Spiritual Materials', icon: BookMarked, superOnly: true },
   { id: 'payments', label: 'Payment Setup', icon: Settings, superOnly: true },
   { id: 'prayers', label: 'Prayers', icon: Heart },
 ]
@@ -576,6 +578,10 @@ export default function AdminDashboard() {
               </table>
             </div>
           </div>
+        )}
+
+        {tab === 'spiritual' && isSuperAdmin && (
+          <SpiritualMaterialsAdmin token={token} />
         )}
 
         {tab === 'payments' && isSuperAdmin && (

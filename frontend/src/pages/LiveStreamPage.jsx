@@ -161,18 +161,18 @@ export default function LiveStreamPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <GlassCard className="overflow-hidden">
+            <GlassCard className="overflow-hidden border-red-500/20">
               <div className="relative aspect-video bg-black">
                 <ReactPlayer
                   url={stream.stream_url}
-                  playing={true}
-                  controls={true}
+                  playing
+                  controls
                   width="100%"
                   height="100%"
                   config={{ file: { attributes: { controlsList: 'nodownload' } } }}
                 />
                 {stream.status === 'live' && (
-                  <div className="absolute top-4 left-4">
+                  <div className="absolute top-4 left-4 z-10 pointer-events-none">
                     <LiveBadge size="lg" />
                   </div>
                 )}
@@ -182,7 +182,10 @@ export default function LiveStreamPage() {
             <GlassCard className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold text-crm-white mb-2">{stream.title}</h1>
+                  <div className="flex flex-wrap items-center gap-3 mb-2">
+                    {stream.status === 'live' && <LiveBadge size="md" />}
+                    <h1 className="text-2xl font-bold text-crm-white">{stream.title}</h1>
+                  </div>
                   <p className="text-crm-purple font-medium mb-2">{stream.speaker}</p>
                   {stream.bible_reference && (
                     <p className="text-sm text-crm-gray-light mb-3">📖 {stream.bible_reference}</p>
@@ -207,9 +210,9 @@ export default function LiveStreamPage() {
 
               <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-white/10">
                 <div className="flex items-center gap-2 text-crm-gray">
-                  <Users className="w-5 h-5 text-crm-live" />
+                  <Users className="w-5 h-5 text-red-500" />
                   <span className="font-medium text-crm-white">{viewerCount.toLocaleString()}</span>
-                  <span className="text-sm">watching</span>
+                  <span className="text-sm">{stream.status === 'live' ? 'watching live' : 'viewers'}</span>
                 </div>
 
                 <div className="flex items-center gap-2 text-crm-gray">

@@ -140,6 +140,13 @@ SEED_PRAYERS = [
 MEDIA_STORE = list(SEED_MEDIA)
 STREAM_STORE = list(SEED_STREAMS)
 
+try:
+    from .spiritual_materials import seed_materials
+except ImportError:
+    from spiritual_materials import seed_materials
+
+SPIRITUAL_MATERIALS_STORE = seed_materials()
+
 # Connected Socket.IO clients (approximate online count)
 CONNECTED_CLIENTS = set()
 
@@ -401,10 +408,21 @@ def get_my_stats():
         if giving and giving.data:
             giving_total = sum(float(g.get("amount") or 0) for g in giving.data)
 
+        completions = try_supabase(
+            lambda: supabase.table("material_completions").select("id", count="exact").eq("member_id", member_id).execute(),
+            None,
+        )
+        courses_completed = 0
+        if completions:
+            if getattr(completions, "count", None) is not None:
+                courses_completed = int(completions.count or 0)
+            elif completions.data:
+                courses_completed = len(completions.data)
+
         return jsonify({
             'attendance': attendance_count,
             'streak': member.data.get('streak') or 0,
-            'coursesCompleted': 0,
+            'coursesCompleted': courses_completed,
             'givingTotal': round(giving_total, 2),
             'engagementScore': member.data.get('engagement_score') or 0,
             'updated_at': datetime.utcnow().isoformat() + 'Z',
@@ -1028,6 +1046,20 @@ register_payment_routes(
     try_supabase=try_supabase,
     broadcast_stats=broadcast_stats,
     payments_mod=payments_mod,
+)
+
+try:
+    from .spiritual_routes import register_spiritual_routes
+except ImportError:
+    from spiritual_routes import register_spiritual_routes
+
+register_spiritual_routes(
+    app,
+    supabase=supabase,
+    db_ready=db_ready,
+    db_execute=db_execute,
+    try_supabase=try_supabase,
+    SPIRITUAL_MATERIALS_STORE=SPIRITUAL_MATERIALS_STORE,
 )
 
 # ============================================================================

@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { 
-  Cross, Globe, Radio, Users, Heart, ArrowRight, Play, 
+  Cross, Globe, Users, Heart, ArrowRight, Play, 
   TrendingUp, Clock, Flame, ChevronRight, Star
 } from 'lucide-react'
 import axios from 'axios'
+import ReactPlayer from 'react-player'
 import LiveBadge from '../components/common/LiveBadge'
 import GlassCard from '../components/common/GlassCard'
 import VideoCard from '../components/media/VideoCard'
@@ -37,7 +38,7 @@ export default function Home() {
       ])
 
       const live = streamsRes.data.streams.find(s => s.status === 'live')
-      setLiveStream(live || streamsRes.data.streams[0])
+      setLiveStream(live || null)
       setTrendingMedia(mediaRes.data.media || [])
       setSeries(seriesRes.data.series || [])
 
@@ -143,8 +144,8 @@ export default function Home() {
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
               {liveStream?.status === 'live' ? (
-                <Link to={`/live/${liveStream.id}`} className="shield-button text-sm flex items-center gap-2">
-                  <Radio className="w-4 h-4" />
+                <Link to={`/live/${liveStream.id}`} className="flex items-center gap-2 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold uppercase tracking-wider text-sm transition-all shadow-lg shadow-red-500/30">
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                   Watch Live Now
                 </Link>
               ) : (
@@ -203,47 +204,43 @@ export default function Home() {
       </section>
 
       {/* Live Stream Section */}
-      {liveStream && (
+      {liveStream?.status === 'live' && (
         <section className="py-20 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                 <LiveBadge size="lg" />
-                <h2 className="text-2xl font-bold">Now Streaming</h2>
+                <h2 className="text-2xl font-bold text-crm-white">Now Streaming</h2>
               </div>
-              <Link to={`/live/${liveStream.id}`} className="flex items-center gap-1 text-crm-purple hover:text-crm-purple-light transition-all text-sm font-medium">
+              <Link to={`/live/${liveStream.id}`} className="flex items-center gap-1 text-red-400 hover:text-red-300 transition-all text-sm font-medium">
                 Watch Full Stream <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
-            <GlassCard className="overflow-hidden">
+            <GlassCard className="overflow-hidden border-red-500/20 shadow-lg shadow-red-500/10">
               <div className="grid lg:grid-cols-3 gap-0">
-                <div className="lg:col-span-2 relative aspect-video">
-                  <img 
-                    src={liveStream.thumbnail_url} 
-                    alt={liveStream.title}
-                    className="w-full h-full object-cover"
+                <div className="lg:col-span-2 relative aspect-video bg-black">
+                  <ReactPlayer
+                    url={liveStream.stream_url}
+                    playing
+                    controls
+                    width="100%"
+                    height="100%"
+                    config={{ file: { attributes: { controlsList: 'nodownload' } } }}
                   />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <Link to={`/live/${liveStream.id}`}>
-                      <motion.div
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="w-20 h-20 rounded-full bg-crm-purple/90 flex items-center justify-center shadow-2xl"
-                      >
-                        <Play className="w-10 h-10 text-crm-black ml-1" fill="currentColor" />
-                      </motion.div>
-                    </Link>
-                  </div>
-                  <div className="absolute top-4 left-4">
+                  <div className="absolute top-4 left-4 pointer-events-none z-10">
                     <LiveBadge size="md" />
                   </div>
-                  <div className="absolute bottom-4 left-4 flex items-center gap-2">
-                    <Users className="w-4 h-4 text-white" />
+                  <div className="absolute bottom-4 left-4 flex items-center gap-2 z-10 pointer-events-none">
+                    <Users className="w-4 h-4 text-red-400" />
                     <span className="text-sm text-white font-medium">{liveStream.viewer_count?.toLocaleString()} watching</span>
                   </div>
                 </div>
                 <div className="p-6 lg:p-8 flex flex-col justify-center">
+                  <div className="flex items-center gap-2 mb-3">
+                    <LiveBadge size="sm" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-red-400">Live Now</span>
+                  </div>
                   <h3 className="text-xl font-bold text-crm-white mb-2">{liveStream.title}</h3>
                   <p className="text-crm-gray-light text-sm mb-4">{liveStream.speaker}</p>
                   <p className="text-crm-gray text-sm mb-6 line-clamp-3">{liveStream.description}</p>

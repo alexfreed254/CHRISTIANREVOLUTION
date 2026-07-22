@@ -13,6 +13,8 @@ import Portal from './pages/Portal'
 import Support from './pages/Support'
 import About from './pages/About'
 import MediaWatch from './pages/MediaWatch'
+import DiscipleshipLibrary from './pages/DiscipleshipLibrary'
+import SpiritualMaterialView from './pages/SpiritualMaterialView'
 import AdminDashboard from './pages/AdminDashboard'
 import { AuthProvider } from './context/AuthContext'
 import { PlayerProvider } from './context/PlayerContext'
@@ -43,6 +45,8 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/portal" element={<Portal />} />
+              <Route path="/discipleship/:materialId" element={<SpiritualMaterialView />} />
+              <Route path="/discipleship" element={<DiscipleshipLibrary />} />
               <Route path="/about" element={<About />} />
               <Route path="/support" element={<Support />} />
               <Route path="/give" element={<Navigate to="/support" replace />} />

@@ -3,7 +3,7 @@ import { Navigate, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
   User, TrendingUp, Calendar, BookOpen, Heart, DollarSign,
-  Award, Target, Flame, ChevronRight, LogOut, Shield
+  Award, Target, Flame, ChevronRight, LogOut, Shield, Sun, Headphones, Video, Globe, Bookmark
 } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
@@ -20,22 +20,27 @@ export default function Portal() {
     givingTotal: 0,
     engagementScore: 0
   })
+  const [todayMaterial, setTodayMaterial] = useState(null)
+  const [materialLang, setMaterialLang] = useState(user?.preferred_language || 'en')
 
   useEffect(() => {
     if (!user || !token) return
 
     const load = async () => {
       try {
-        const res = await axios.get('/api/me/stats', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const headers = { Authorization: `Bearer ${token}` }
+        const [statsRes, todayRes] = await Promise.all([
+          axios.get('/api/me/stats', { headers }),
+          axios.get('/api/discipleship/today', { headers, params: { lang: materialLang } }),
+        ])
         setStats({
-          attendance: res.data.attendance || 0,
-          streak: res.data.streak ?? user.streak ?? 0,
-          coursesCompleted: res.data.coursesCompleted || 0,
-          givingTotal: res.data.givingTotal || 0,
-          engagementScore: res.data.engagementScore ?? user.engagement_score ?? 0
+          attendance: statsRes.data.attendance || 0,
+          streak: statsRes.data.streak ?? user.streak ?? 0,
+          coursesCompleted: statsRes.data.coursesCompleted || 0,
+          givingTotal: statsRes.data.givingTotal || 0,
+          engagementScore: statsRes.data.engagementScore ?? user.engagement_score ?? 0
         })
+        setTodayMaterial(todayRes.data.material)
       } catch {
         setStats({
           attendance: 0,
@@ -50,7 +55,7 @@ export default function Portal() {
     load()
     const interval = setInterval(load, 20000)
     return () => clearInterval(interval)
-  }, [user, token])
+  }, [user, token, materialLang])
 
   const handleLogout = () => {
     logout()
@@ -122,6 +127,79 @@ export default function Portal() {
             </div>
           </GlassCard>
         </motion.div>
+
+        {/* Today's Spiritual Material */}
+        {todayMaterial && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-12"
+          >
+            <GlassCard className="p-8 border-crm-purple/30 bg-gradient-to-br from-crm-purple/10 to-transparent">
+              <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+                <div>
+                  <p className="text-sm text-crm-gray-light mb-1">
+                    Good morning, {user.full_name?.split(' ')[0]}
+                  </p>
+                  <h2 className="text-2xl font-bold text-crm-white flex items-center gap-2">
+                    <Sun className="w-6 h-6 text-crm-purple" />
+                    Today&apos;s Daily Christ Bite
+                  </h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-crm-gray" />
+                  <select
+                    value={materialLang}
+                    onChange={(e) => setMaterialLang(e.target.value)}
+                    className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm"
+                  >
+                    <option value="en">English</option>
+                    <option value="sw">Kiswahili</option>
+                    <option value="fr">French</option>
+                    <option value="es">Spanish</option>
+                    <option value="pt">Portuguese</option>
+                    <option value="ar">Arabic</option>
+                  </select>
+                </div>
+              </div>
+
+              <h3 className="text-xl font-semibold text-crm-white mb-2">{todayMaterial.title}</h3>
+              <p className="text-crm-gray-light text-sm mb-6 line-clamp-3">{todayMaterial.description}</p>
+
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  to={`/discipleship/${todayMaterial.id}?lang=${materialLang}`}
+                  className="shield-button text-xs px-4 py-2 flex items-center gap-2"
+                >
+                  <BookOpen className="w-4 h-4" /> Read
+                </Link>
+                {todayMaterial.audio_url && (
+                  <Link
+                    to={`/discipleship/${todayMaterial.id}?lang=${materialLang}`}
+                    className="px-4 py-2 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5 flex items-center gap-2"
+                  >
+                    <Headphones className="w-4 h-4" /> Listen
+                  </Link>
+                )}
+                {todayMaterial.video_url && (
+                  <Link
+                    to={`/discipleship/${todayMaterial.id}?lang=${materialLang}`}
+                    className="px-4 py-2 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5 flex items-center gap-2"
+                  >
+                    <Video className="w-4 h-4" /> Watch
+                  </Link>
+                )}
+                <Link
+                  to="/discipleship"
+                  className="px-4 py-2 rounded-xl border border-crm-purple/30 text-sm text-crm-purple hover:bg-crm-purple/10 flex items-center gap-2"
+                >
+                  <Bookmark className="w-4 h-4" /> Library
+                </Link>
+              </div>
+            </GlassCard>
+          </motion.div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-12">
@@ -201,7 +279,9 @@ export default function Portal() {
 
             <div className="mt-6 p-4 rounded-xl bg-crm-purple/10 border border-crm-purple/20">
               <p className="text-sm text-crm-gray-light">
-                <strong className="text-crm-purple">Next Step:</strong> Complete the "Foundations" course to advance to the next stage
+                <strong className="text-crm-purple">Next Step:</strong> Complete a course in the{' '}
+                <Link to="/discipleship" className="text-crm-purple hover:underline">Discipleship Library</Link>{' '}
+                to advance to the next stage
               </p>
             </div>
           </GlassCard>
@@ -209,27 +289,32 @@ export default function Portal() {
 
         {/* Quick Actions */}
         <div className="grid md:grid-cols-3 gap-6">
-          <GlassCard className="p-6 group hover:border-crm-purple/30 transition-all cursor-pointer">
+          <Link to="/discipleship" className="block">
+          <GlassCard className="p-6 group hover:border-crm-purple/30 transition-all cursor-pointer h-full">
             <div className="flex items-center justify-between mb-4">
               <BookOpen className="w-8 h-8 text-crm-purple" />
               <ChevronRight className="w-5 h-5 text-crm-gray group-hover:text-crm-purple transition-colors" />
             </div>
             <h3 className="text-lg font-semibold text-crm-white mb-2">My Courses</h3>
             <p className="text-sm text-crm-gray mb-4">Continue learning and growing</p>
-            <div className="text-sm text-crm-purple font-medium">3 in progress →</div>
+            <div className="text-sm text-crm-purple font-medium">{stats.coursesCompleted} completed →</div>
           </GlassCard>
+          </Link>
 
-          <GlassCard className="p-6 group hover:border-crm-purple/30 transition-all cursor-pointer">
+          <Link to="/prayer" className="block">
+          <GlassCard className="p-6 group hover:border-crm-live/30 transition-all cursor-pointer h-full">
             <div className="flex items-center justify-between mb-4">
               <Heart className="w-8 h-8 text-crm-live" />
               <ChevronRight className="w-5 h-5 text-crm-gray group-hover:text-crm-live transition-colors" />
             </div>
             <h3 className="text-lg font-semibold text-crm-white mb-2">Prayer Requests</h3>
             <p className="text-sm text-crm-gray mb-4">View and pray for others</p>
-            <div className="text-sm text-crm-live font-medium">2 new requests →</div>
+            <div className="text-sm text-crm-live font-medium">View prayer wall →</div>
           </GlassCard>
+          </Link>
 
-          <GlassCard className="p-6 group hover:border-crm-purple/30 transition-all cursor-pointer">
+          <Link to="/support" className="block">
+          <GlassCard className="p-6 group hover:border-green-400/30 transition-all cursor-pointer h-full">
             <div className="flex items-center justify-between mb-4">
               <DollarSign className="w-8 h-8 text-green-400" />
               <ChevronRight className="w-5 h-5 text-crm-gray group-hover:text-green-400 transition-colors" />
@@ -238,6 +323,7 @@ export default function Portal() {
             <p className="text-sm text-crm-gray mb-4">View your donations</p>
             <div className="text-sm text-green-400 font-medium">${stats.givingTotal} YTD →</div>
           </GlassCard>
+          </Link>
         </div>
 
         {/* Recent Activity */}

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import BrandLogo from './BrandLogo'
+import useLiveStats from '../../hooks/useLiveStats'
 
 const MINISTRIES = [
   'Daily Christ Bites', 'Christ Decrees', 'Worldwide Invasions', 'Jesus Bootcamps',
@@ -18,7 +19,8 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [ministriesOpen, setMinistriesOpen] = useState(false)
-  const [isLive] = useState(true)
+  const { stats } = useLiveStats({ pollMs: 30000 })
+  const isLive = (stats.live_now || 0) > 0
   const location = useLocation()
   const { user, logout } = useAuth()
 
@@ -37,6 +39,7 @@ export default function Navbar() {
     { path: '/', label: 'Home', icon: Globe },
     { path: '/about', label: 'About', icon: Info },
     { path: '/live', label: 'Live', icon: Radio, badge: isLive ? 'LIVE' : null },
+    { path: '/discipleship', label: 'Discipleship', icon: BookOpen },
     { path: '/media', label: 'Media', icon: Library },
     { path: '/prayer', label: 'Prayer', icon: Heart },
     { path: '/portal', label: 'Discipleship', icon: GraduationCap, auth: true },
@@ -61,7 +64,7 @@ export default function Navbar() {
       <Link to={link.path} className={cls}>
         <link.icon className={mobile ? 'w-5 h-5' : 'w-4 h-4'} />
         {link.label}
-        {link.badge && <span className="live-badge text-[10px]">{link.badge}</span>}
+        {link.badge && <span className="live-badge text-[10px] ml-1">{link.badge}</span>}
       </Link>
     )
   }

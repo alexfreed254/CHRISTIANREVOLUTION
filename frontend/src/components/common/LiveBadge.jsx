@@ -5,14 +5,15 @@ export default function LiveBadge({ size = 'md', pulsing = true }) {
 
   return (
     <motion.span
-      className={`inline-flex items-center gap-1.5 font-bold uppercase tracking-wider ${sizes[size]}`}
-      style={{ background: 'linear-gradient(135deg, #8B7FC7 0%, #B8B0E3 100%)', clipPath: 'polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)' }}
-      animate={pulsing ? { opacity: [1, 0.7, 1] } : {}}
+      className={`live-badge inline-flex items-center gap-1.5 font-bold uppercase tracking-wider text-white ${sizes[size]}`}
+      animate={pulsing ? { opacity: [1, 0.85, 1] } : {}}
       transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
     >
-      <motion.span className="w-1.5 h-1.5 rounded-full bg-white"
+      <motion.span
+        className="w-1.5 h-1.5 rounded-full bg-white shrink-0"
         animate={pulsing ? { scale: [1, 1.3, 1] } : {}}
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }} />
+        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+      />
       LIVE
     </motion.span>
   )
