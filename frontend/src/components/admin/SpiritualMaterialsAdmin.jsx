@@ -157,7 +157,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
       </div>
 
       {stats && (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {[
             { label: "Today's Material", value: stats.today_material?.title || 'None', ok: !!stats.today_material },
             { label: "Tomorrow's Material", value: stats.tomorrow_material?.title || 'None', ok: !!stats.tomorrow_material },
@@ -178,7 +178,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
         </div>
       )}
 
-      <form onSubmit={createMaterial} className="p-6 rounded-2xl bg-crm-dark/60 border border-white/10 space-y-4">
+      <form onSubmit={createMaterial} className="p-4 sm:p-6 rounded-2xl bg-crm-dark/60 border border-white/10 space-y-4">
         <h3 className="text-lg font-semibold text-crm-white flex items-center gap-2">
           <Plus className="w-5 h-5" /> Create New Material
         </h3>
@@ -323,13 +323,13 @@ export default function SpiritualMaterialsAdmin({ token }) {
       </form>
 
       <div>
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="scroll-tabs mb-4">
           {['', 'published', 'scheduled', 'draft', 'archived'].map((s) => (
             <button
               key={s || 'all'}
               type="button"
               onClick={() => setFilterStatus(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs uppercase ${
+              className={`shrink-0 px-3 py-1.5 rounded-lg text-xs uppercase ${
                 filterStatus === s ? 'bg-crm-purple text-crm-black' : 'bg-white/5 text-crm-gray-light'
               }`}
             >
@@ -347,8 +347,8 @@ export default function SpiritualMaterialsAdmin({ token }) {
                   <span className="text-xs text-crm-gray uppercase">{m.material_type_label || m.material_type}</span>
                   <span className="text-xs text-crm-gray uppercase">{m.language}</span>
                 </div>
-                <p className="font-semibold text-crm-white truncate">{m.title}</p>
-                <p className="text-xs text-crm-gray mt-1">
+                <p className="font-semibold text-crm-white break-words">{m.title}</p>
+                <p className="text-xs text-crm-gray mt-1 break-words">
                   {m.speaker || m.ministry || '—'}
                   {m.publish_at && ` · ${new Date(m.publish_at).toLocaleString()}`}
                   {` · ${m.view_count || 0} views · ${m.download_count || 0} downloads`}

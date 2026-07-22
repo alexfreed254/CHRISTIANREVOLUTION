@@ -169,20 +169,20 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9 }}
-              className="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto"
+              className="mt-12 sm:mt-16 grid grid-cols-3 gap-4 sm:gap-8 max-w-lg mx-auto"
             >
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-crm-purple">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-crm-purple">
                   {formatStat(stats.members)}
                 </div>
                 <div className="text-xs text-crm-gray uppercase tracking-wider mt-1">Members</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-crm-purple">{stats.countries}</div>
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-crm-purple">{stats.countries}</div>
                 <div className="text-xs text-crm-gray uppercase tracking-wider mt-1">Nations</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-crm-purple">
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-crm-purple">
                   {formatStat(stats.souls)}
                 </div>
                 <div className="text-xs text-crm-gray uppercase tracking-wider mt-1">Souls Reached</div>
@@ -205,12 +205,12 @@ export default function Home() {
 
       {/* Live Stream Section */}
       {liveStream?.status === 'live' && (
-        <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <section className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <LiveBadge size="lg" />
-                <h2 className="text-2xl font-bold text-crm-white">Now Streaming</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-crm-white">Now Streaming</h2>
               </div>
               <Link to={`/live/${liveStream.id}`} className="flex items-center gap-1 text-red-400 hover:text-red-300 transition-all text-sm font-medium">
                 Watch Full Stream <ArrowRight className="w-4 h-4" />
@@ -218,8 +218,8 @@ export default function Home() {
             </div>
 
             <GlassCard className="overflow-hidden border-red-500/20 shadow-lg shadow-red-500/10">
-              <div className="grid lg:grid-cols-3 gap-0">
-                <div className="lg:col-span-2 relative aspect-video bg-black">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+                <div className="lg:col-span-2 relative video-embed">
                   <ReactPlayer
                     url={liveStream.stream_url}
                     playing
@@ -228,15 +228,15 @@ export default function Home() {
                     height="100%"
                     config={{ file: { attributes: { controlsList: 'nodownload' } } }}
                   />
-                  <div className="absolute top-4 left-4 pointer-events-none z-10">
+                  <div className="absolute top-3 left-3 sm:top-4 sm:left-4 pointer-events-none z-10">
                     <LiveBadge size="md" />
                   </div>
-                  <div className="absolute bottom-4 left-4 flex items-center gap-2 z-10 pointer-events-none">
+                  <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 flex items-center gap-2 z-10 pointer-events-none">
                     <Users className="w-4 h-4 text-red-400" />
-                    <span className="text-sm text-white font-medium">{liveStream.viewer_count?.toLocaleString()} watching</span>
+                    <span className="text-xs sm:text-sm text-white font-medium">{liveStream.viewer_count?.toLocaleString()} watching</span>
                   </div>
                 </div>
-                <div className="p-6 lg:p-8 flex flex-col justify-center">
+                <div className="p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
                   <div className="flex items-center gap-2 mb-3">
                     <LiveBadge size="sm" />
                     <span className="text-xs font-semibold uppercase tracking-wider text-red-400">Live Now</span>

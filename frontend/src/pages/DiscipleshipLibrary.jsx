@@ -73,32 +73,32 @@ export default function DiscipleshipLibrary() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-crm-white mb-3">Discipleship Library</h1>
-          <p className="text-crm-gray-light max-w-2xl mx-auto">
+    <div className="page-shell safe-bottom">
+      <div className="page-container max-w-7xl">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8 sm:mb-10">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-crm-white mb-3">Discipleship Library</h1>
+          <p className="text-sm sm:text-base text-crm-gray-light max-w-2xl mx-auto px-2">
             Daily spiritual materials, courses, devotionals, Bible studies, and training resources for every stage of your journey.
           </p>
         </motion.div>
 
         {today && (
-          <GlassCard className="p-6 mb-10 border-crm-purple/30 bg-gradient-to-br from-crm-purple/10 to-transparent">
-            <div className="flex flex-col lg:flex-row gap-6 items-start">
+          <GlassCard className="p-4 sm:p-6 mb-8 sm:mb-10 border-crm-purple/30 bg-gradient-to-br from-crm-purple/10 to-transparent">
+            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 items-start">
               {today.thumbnail_url && (
-                <img src={today.thumbnail_url} alt="" className="w-full lg:w-48 aspect-video object-cover rounded-xl" />
+                <img src={today.thumbnail_url} alt="" className="w-full lg:w-48 aspect-video object-cover rounded-xl shrink-0" />
               )}
-              <div className="flex-1">
+              <div className="flex-1 min-w-0 w-full">
                 <p className="text-xs uppercase tracking-widest text-crm-purple mb-2">Today&apos;s Spiritual Material</p>
-                <h2 className="text-2xl font-bold text-crm-white mb-2">{today.title}</h2>
+                <h2 className="text-lg sm:text-2xl font-bold text-crm-white mb-2">{today.title}</h2>
                 <p className="text-sm text-crm-gray-light mb-4">{today.description}</p>
-                <div className="flex flex-wrap gap-2">
-                  <Link to={`/discipleship/${today.id}?lang=${lang}`} className="shield-button text-xs px-4 py-2">Read</Link>
+                <div className="flex flex-col sm:flex-row flex-wrap gap-2">
+                  <Link to={`/discipleship/${today.id}?lang=${lang}`} className="shield-button text-center w-full sm:w-auto">Read</Link>
                   {today.audio_url && (
-                    <a href={today.audio_url} target="_blank" rel="noreferrer" className="px-4 py-2 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5">Listen</a>
+                    <a href={today.audio_url} target="_blank" rel="noreferrer" className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5">Listen</a>
                   )}
                   {today.video_url && (
-                    <Link to={`/discipleship/${today.id}?lang=${lang}`} className="px-4 py-2 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5">Watch</Link>
+                    <Link to={`/discipleship/${today.id}?lang=${lang}`} className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5">Watch</Link>
                   )}
                 </div>
               </div>
@@ -106,8 +106,8 @@ export default function DiscipleshipLibrary() {
           </GlassCard>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3 mb-8">
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6 sm:mb-8">
+          <div className="relative flex-1 min-w-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-crm-gray" />
             <input
               value={query}
@@ -116,12 +116,12 @@ export default function DiscipleshipLibrary() {
               className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-crm-gray" />
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Globe className="w-4 h-4 text-crm-gray shrink-0" />
             <select
               value={lang}
               onChange={(e) => setLang(e.target.value)}
-              className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+              className="w-full sm:w-auto min-w-[140px] px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
             >
               <option value="en">English</option>
               <option value="sw">Kiswahili</option>
@@ -133,11 +133,11 @@ export default function DiscipleshipLibrary() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="scroll-tabs mb-6 sm:mb-8 flex-nowrap sm:flex-wrap">
           <button
             type="button"
             onClick={() => setActiveSection('')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`shrink-0 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all ${
               !activeSection ? 'bg-crm-purple text-crm-black' : 'bg-white/5 text-crm-gray-light hover:bg-white/10'
             }`}
           >
@@ -150,7 +150,7 @@ export default function DiscipleshipLibrary() {
                 key={sec.id}
                 type="button"
                 onClick={() => setActiveSection(sec.id)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                className={`shrink-0 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex items-center gap-2 ${
                   activeSection === sec.id ? 'bg-crm-purple text-crm-black' : 'bg-white/5 text-crm-gray-light hover:bg-white/10'
                 }`}
               >
@@ -165,7 +165,7 @@ export default function DiscipleshipLibrary() {
             <div className="w-12 h-12 border-4 border-crm-purple/30 border-t-crm-purple rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {materials.map((m, i) => {
               const Icon = TYPE_ICONS[m.material_type] || BookOpen
               return (

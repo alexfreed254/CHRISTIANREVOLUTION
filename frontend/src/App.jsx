@@ -33,7 +33,7 @@ function App() {
       <PlayerProvider>
         <div className="min-h-screen bg-crm-black">
           <Navbar />
-          <main className={isMobile ? 'pb-20' : ''}>
+          <main className={isMobile ? 'pb-24 safe-bottom' : ''}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/live/:streamId" element={<LiveStreamPage />} />

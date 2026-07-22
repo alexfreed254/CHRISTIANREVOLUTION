@@ -315,24 +315,24 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-crm-white">Superadmin Dashboard</h1>
-            <p className="text-crm-gray">Manage users, streams, media, donations, and prayers</p>
+    <div className="page-shell safe-bottom">
+      <div className="page-container">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-crm-white">Superadmin Dashboard</h1>
+            <p className="text-sm sm:text-base text-crm-gray">Manage users, streams, media, donations, and prayers</p>
           </div>
           <button onClick={() => loadTab(tab)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-crm-gray-light hover:text-white">
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
           </button>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-4 mb-6">
+        <div className="scroll-tabs mb-4 sm:mb-6">
           {visibleTabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl whitespace-nowrap transition-all ${
+              className={`shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl whitespace-nowrap transition-all text-sm ${
                 tab === t.id ? 'bg-crm-purple/20 text-crm-purple border border-crm-purple/30' : 'bg-white/5 text-crm-gray-light border border-transparent hover:bg-white/10'
               }`}
             >

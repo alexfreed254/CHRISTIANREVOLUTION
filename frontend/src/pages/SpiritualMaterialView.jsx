@@ -122,14 +122,14 @@ export default function SpiritualMaterialView() {
   const langs = [...new Set(translations.map((t) => t.language).filter(Boolean))]
 
   return (
-    <div className="min-h-screen pt-20 pb-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link to="/discipleship" className="inline-flex items-center gap-2 text-sm text-crm-gray hover:text-crm-white mb-6">
+    <div className="page-shell safe-bottom">
+      <div className="page-container max-w-4xl">
+        <Link to="/discipleship" className="inline-flex items-center gap-2 text-sm text-crm-gray hover:text-crm-white mb-4 sm:mb-6">
           <ArrowLeft className="w-4 h-4" /> Discipleship Library
         </Link>
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-          <GlassCard className="p-8 mb-6">
+          <GlassCard className="p-4 sm:p-6 lg:p-8 mb-6">
             <div className="flex flex-wrap items-center gap-2 mb-4">
               <span className="px-3 py-1 text-xs font-bold uppercase bg-crm-purple/20 text-crm-purple rounded-full">
                 {material.material_type_label || material.material_type}
@@ -139,7 +139,7 @@ export default function SpiritualMaterialView() {
               )}
             </div>
 
-            <h1 className="text-3xl font-bold text-crm-white mb-2">{material.title}</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-crm-white mb-2 break-words">{material.title}</h1>
             <p className="text-crm-purple font-medium mb-1">{material.speaker}</p>
             {material.bible_reference && (
               <p className="text-sm text-crm-gray-light mb-4">📖 {material.bible_reference}</p>
@@ -164,25 +164,25 @@ export default function SpiritualMaterialView() {
               </div>
             )}
 
-            <div className="flex flex-wrap gap-2 mb-8">
-              <button type="button" onClick={handleSave} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm ${saved ? 'bg-crm-purple/20 text-crm-purple' : 'bg-white/5 text-crm-gray-light hover:bg-white/10'}`}>
-                <Bookmark className="w-4 h-4" /> {saved ? 'Saved' : 'Save'}
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mb-6 sm:mb-8">
+              <button type="button" onClick={handleSave} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm min-h-[44px] ${saved ? 'bg-crm-purple/20 text-crm-purple' : 'bg-white/5 text-crm-gray-light hover:bg-white/10'}`}>
+                <Bookmark className="w-4 h-4 shrink-0" /> <span className="truncate">{saved ? 'Saved' : 'Save'}</span>
               </button>
-              <button type="button" onClick={handleComplete} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm ${completed ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-crm-gray-light hover:bg-white/10'}`}>
-                <CheckCircle className="w-4 h-4" /> {completed ? 'Completed' : 'Mark complete'}
+              <button type="button" onClick={handleComplete} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm min-h-[44px] ${completed ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-crm-gray-light hover:bg-white/10'}`}>
+                <CheckCircle className="w-4 h-4 shrink-0" /> <span className="truncate">{completed ? 'Done' : 'Complete'}</span>
               </button>
               {material.file_url && (
-                <button type="button" onClick={handleDownload} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-white/5 text-crm-gray-light hover:bg-white/10">
-                  <Download className="w-4 h-4" /> Download
+                <button type="button" onClick={handleDownload} className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm bg-white/5 text-crm-gray-light hover:bg-white/10 min-h-[44px]">
+                  <Download className="w-4 h-4 shrink-0" /> Download
                 </button>
               )}
-              <button type="button" onClick={handleShare} className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm bg-white/5 text-crm-gray-light hover:bg-white/10">
-                <Share2 className="w-4 h-4" /> Share
+              <button type="button" onClick={handleShare} className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm bg-white/5 text-crm-gray-light hover:bg-white/10 min-h-[44px]">
+                <Share2 className="w-4 h-4 shrink-0" /> Share
               </button>
             </div>
 
             {material.video_url && (
-              <div className="relative aspect-video bg-black rounded-xl overflow-hidden mb-8">
+              <div className="video-embed rounded-xl mb-6 sm:mb-8">
                 <ReactPlayer url={material.video_url} controls width="100%" height="100%" />
               </div>
             )}
@@ -193,7 +193,7 @@ export default function SpiritualMaterialView() {
                   <BookOpen className="w-5 h-5" />
                   <span className="font-semibold">Read</span>
                 </div>
-                <div className="text-crm-gray-light leading-relaxed whitespace-pre-wrap">{material.content}</div>
+                <div className="text-sm sm:text-base text-crm-gray-light leading-relaxed whitespace-pre-wrap break-words">{material.content}</div>
               </div>
             )}
 

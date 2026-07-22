@@ -157,12 +157,12 @@ export default function LiveStreamPage() {
   const reactionTotal = reactions ? Object.values(reactions).reduce((a, b) => a + (Number(b) || 0), 0) : 0
 
   return (
-    <div className="min-h-screen pt-20 pb-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+    <div className="page-shell safe-bottom pb-24 lg:pb-8">
+      <div className="page-container">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6 order-1">
             <GlassCard className="overflow-hidden border-red-500/20">
-              <div className="relative aspect-video bg-black">
+              <div className="video-embed">
                 <ReactPlayer
                   url={stream.stream_url}
                   playing
@@ -172,19 +172,19 @@ export default function LiveStreamPage() {
                   config={{ file: { attributes: { controlsList: 'nodownload' } } }}
                 />
                 {stream.status === 'live' && (
-                  <div className="absolute top-4 left-4 z-10 pointer-events-none">
+                  <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 pointer-events-none">
                     <LiveBadge size="lg" />
                   </div>
                 )}
               </div>
             </GlassCard>
 
-            <GlassCard className="p-6">
+            <GlassCard className="p-4 sm:p-6">
               <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-3 mb-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                     {stream.status === 'live' && <LiveBadge size="md" />}
-                    <h1 className="text-2xl font-bold text-crm-white">{stream.title}</h1>
+                    <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-crm-white break-words">{stream.title}</h1>
                   </div>
                   <p className="text-crm-purple font-medium mb-2">{stream.speaker}</p>
                   {stream.bible_reference && (
@@ -208,22 +208,22 @@ export default function LiveStreamPage() {
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-white/10">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-4 border-t border-white/10">
                 <div className="flex items-center gap-2 text-crm-gray">
-                  <Users className="w-5 h-5 text-red-500" />
+                  <Users className="w-5 h-5 text-red-500 shrink-0" />
                   <span className="font-medium text-crm-white">{viewerCount.toLocaleString()}</span>
-                  <span className="text-sm">{stream.status === 'live' ? 'watching live' : 'viewers'}</span>
+                  <span className="text-xs sm:text-sm">{stream.status === 'live' ? 'watching live' : 'viewers'}</span>
                 </div>
 
                 <div className="flex items-center gap-2 text-crm-gray">
                   <span className="text-lg">🙏</span>
                   <span className="font-medium text-crm-white">{reactionTotal.toLocaleString()}</span>
-                  <span className="text-sm">reactions</span>
+                  <span className="text-xs sm:text-sm">reactions</span>
                 </div>
 
                 <button
                   onClick={handleLike}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all min-h-[44px] ${
                     liked
                       ? 'bg-crm-live/20 text-crm-live'
                       : 'bg-white/5 text-crm-gray hover:bg-white/10 hover:text-crm-white'
@@ -236,16 +236,16 @@ export default function LiveStreamPage() {
 
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 text-crm-gray hover:bg-white/10 hover:text-crm-white transition-all"
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-white/5 text-crm-gray hover:bg-white/10 hover:text-crm-white transition-all min-h-[44px]"
                 >
                   <Share2 className="w-5 h-5" />
-                  <span>Share</span>
+                  <span className="text-sm">Share</span>
                 </button>
 
                 {stream.available_languages && (
-                  <div className="flex items-center gap-2 ml-auto text-crm-gray">
-                    <Globe className="w-5 h-5" />
-                    <span className="text-sm">
+                  <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto text-crm-gray">
+                    <Globe className="w-5 h-5 shrink-0" />
+                    <span className="text-xs sm:text-sm truncate">
                       {stream.available_languages.join(', ').toUpperCase()}
                     </span>
                   </div>
@@ -261,7 +261,7 @@ export default function LiveStreamPage() {
             </GlassCard>
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 order-2 min-h-[320px] lg:min-h-0">
             <LiveChat
               streamId={streamId}
               comments={comments}

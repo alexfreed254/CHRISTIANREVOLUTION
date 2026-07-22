@@ -79,49 +79,49 @@ export default function Portal() {
   const progress = ((currentStageIndex + 1) / growthStages.length) * 100
 
   return (
-    <div className="min-h-screen pt-20 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="page-shell safe-bottom">
+      <div className="page-container">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
+          className="mb-8 sm:mb-12"
         >
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h1 className="text-4xl font-bold text-crm-white mb-2">
-                Welcome back, {user.full_name}!
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-crm-white mb-2 break-words">
+                Welcome back, {user.full_name?.split(' ')[0]}!
               </h1>
-              <p className="text-crm-gray-light">Continue your discipleship journey</p>
+              <p className="text-sm sm:text-base text-crm-gray-light">Continue your discipleship journey</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               {['admin', 'super_admin'].includes(user.role) && (
                 <Link
                   to="/admin"
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-crm-purple text-crm-black font-semibold hover:opacity-90 transition-all"
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-crm-purple text-crm-black font-semibold hover:opacity-90 transition-all text-sm"
                 >
                   <Shield className="w-4 h-4" />
-                  Admin
+                  <span className="hidden sm:inline">Admin</span>
                 </Link>
               )}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-crm-gray hover:bg-white/10 hover:text-crm-white transition-all"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-white/5 text-crm-gray hover:bg-white/10 hover:text-crm-white transition-all text-sm min-h-[44px]"
               >
                 <LogOut className="w-4 h-4" />
-                Logout
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>
 
           {/* Member ID Card */}
-          <GlassCard className="p-6 bg-gradient-to-br from-crm-purple/10 to-transparent border-crm-purple/20">
-            <div className="flex items-center justify-between">
-              <div>
+          <GlassCard className="p-4 sm:p-6 bg-gradient-to-br from-crm-purple/10 to-transparent border-crm-purple/20">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
                 <p className="text-sm text-crm-gray mb-1">Member ID</p>
-                <p className="text-2xl font-bold text-crm-purple tracking-wider">{user.unique_id}</p>
+                <p className="text-lg sm:text-2xl font-bold text-crm-purple tracking-wider break-all">{user.unique_id}</p>
               </div>
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-crm-purple to-crm-purple-light flex items-center justify-center text-crm-black font-bold text-2xl">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-crm-purple to-crm-purple-light flex items-center justify-center text-crm-black font-bold text-xl sm:text-2xl shrink-0">
                 {user.full_name?.charAt(0)}
               </div>
             </div>
@@ -136,23 +136,23 @@ export default function Portal() {
             transition={{ delay: 0.15 }}
             className="mb-12"
           >
-            <GlassCard className="p-8 border-crm-purple/30 bg-gradient-to-br from-crm-purple/10 to-transparent">
-              <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-                <div>
+            <GlassCard className="p-4 sm:p-6 lg:p-8 border-crm-purple/30 bg-gradient-to-br from-crm-purple/10 to-transparent">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 sm:mb-6">
+                <div className="min-w-0">
                   <p className="text-sm text-crm-gray-light mb-1">
                     Good morning, {user.full_name?.split(' ')[0]}
                   </p>
-                  <h2 className="text-2xl font-bold text-crm-white flex items-center gap-2">
-                    <Sun className="w-6 h-6 text-crm-purple" />
-                    Today&apos;s Daily Christ Bite
+                  <h2 className="text-lg sm:text-2xl font-bold text-crm-white flex items-center gap-2">
+                    <Sun className="w-5 h-5 sm:w-6 sm:h-6 text-crm-purple shrink-0" />
+                    <span>Today&apos;s Daily Christ Bite</span>
                   </h2>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-crm-gray" />
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Globe className="w-4 h-4 text-crm-gray shrink-0" />
                   <select
                     value={materialLang}
                     onChange={(e) => setMaterialLang(e.target.value)}
-                    className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm"
+                    className="w-full sm:w-auto min-w-[120px] px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm"
                   >
                     <option value="en">English</option>
                     <option value="sw">Kiswahili</option>
@@ -167,17 +167,17 @@ export default function Portal() {
               <h3 className="text-xl font-semibold text-crm-white mb-2">{todayMaterial.title}</h3>
               <p className="text-crm-gray-light text-sm mb-6 line-clamp-3">{todayMaterial.description}</p>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
                 <Link
                   to={`/discipleship/${todayMaterial.id}?lang=${materialLang}`}
-                  className="shield-button text-xs px-4 py-2 flex items-center gap-2"
+                  className="shield-button text-center col-span-2 sm:col-span-1 flex items-center justify-center gap-2 min-h-[44px]"
                 >
                   <BookOpen className="w-4 h-4" /> Read
                 </Link>
                 {todayMaterial.audio_url && (
                   <Link
                     to={`/discipleship/${todayMaterial.id}?lang=${materialLang}`}
-                    className="px-4 py-2 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5 flex items-center gap-2"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5 min-h-[44px]"
                   >
                     <Headphones className="w-4 h-4" /> Listen
                   </Link>
@@ -185,14 +185,14 @@ export default function Portal() {
                 {todayMaterial.video_url && (
                   <Link
                     to={`/discipleship/${todayMaterial.id}?lang=${materialLang}`}
-                    className="px-4 py-2 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5 flex items-center gap-2"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5 min-h-[44px]"
                   >
                     <Video className="w-4 h-4" /> Watch
                   </Link>
                 )}
                 <Link
                   to="/discipleship"
-                  className="px-4 py-2 rounded-xl border border-crm-purple/30 text-sm text-crm-purple hover:bg-crm-purple/10 flex items-center gap-2"
+                  className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-crm-purple/30 text-sm text-crm-purple hover:bg-crm-purple/10 min-h-[44px]"
                 >
                   <Bookmark className="w-4 h-4" /> Library
                 </Link>
@@ -232,13 +232,13 @@ export default function Portal() {
           transition={{ delay: 0.3 }}
           className="mb-12"
         >
-          <GlassCard className="p-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-crm-white flex items-center gap-2">
-                <Target className="w-6 h-6 text-crm-purple" />
+          <GlassCard className="p-4 sm:p-6 lg:p-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-crm-white flex items-center gap-2">
+                <Target className="w-5 h-5 sm:w-6 sm:h-6 text-crm-purple shrink-0" />
                 Growth Track
               </h2>
-              <span className="text-crm-purple font-medium">{Math.round(progress)}% Complete</span>
+              <span className="text-crm-purple font-medium text-sm sm:text-base">{Math.round(progress)}% Complete</span>
             </div>
 
             {/* Progress Bar */}
@@ -252,26 +252,27 @@ export default function Portal() {
             </div>
 
             {/* Stages */}
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-2">
               {[
-                { name: 'New Believer', stage: 'new_believer' },
-                { name: 'Growing', stage: 'growing' },
-                { name: 'Mature', stage: 'mature' },
-                { name: 'Leader', stage: 'leader' },
-                { name: 'Commissioned', stage: 'commissioned' }
+                { name: 'New Believer', short: 'New' },
+                { name: 'Growing', short: 'Grow' },
+                { name: 'Mature', short: 'Mature' },
+                { name: 'Leader', short: 'Lead' },
+                { name: 'Commissioned', short: 'Sent' }
               ].map((item, i) => (
                 <div key={i} className="text-center">
-                  <div className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center text-sm font-bold mb-2 ${
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-full flex items-center justify-center text-xs sm:text-sm font-bold mb-2 ${
                     i <= currentStageIndex 
                       ? 'bg-crm-purple text-crm-black' 
                       : 'bg-white/10 text-crm-gray'
                   }`}>
                     {i + 1}
                   </div>
-                  <p className={`text-xs ${
+                  <p className={`text-[10px] sm:text-xs leading-tight ${
                     i <= currentStageIndex ? 'text-crm-white font-medium' : 'text-crm-gray'
                   }`}>
-                    {item.name}
+                    <span className="sm:hidden">{item.short}</span>
+                    <span className="hidden sm:inline">{item.name}</span>
                   </p>
                 </div>
               ))}
@@ -288,7 +289,7 @@ export default function Portal() {
         </motion.div>
 
         {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <Link to="/discipleship" className="block">
           <GlassCard className="p-6 group hover:border-crm-purple/30 transition-all cursor-pointer h-full">
             <div className="flex items-center justify-between mb-4">
