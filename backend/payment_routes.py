@@ -216,12 +216,12 @@ def register_payment_routes(
 
         donation = result.data[0]
         base = request.host_url.rstrip("/")
-        return_url = f"{base}/give?paypal=success&receipt={receipt_id}"
-        cancel_url = f"{base}/give?paypal=cancel&receipt={receipt_id}"
+        return_url = f"{base}/support?paypal=success&receipt={receipt_id}"
+        cancel_url = f"{base}/support?paypal=cancel&receipt={receipt_id}"
 
         if method == "stripe":
-            stripe_success = f"{base}/give?stripe=success&session_id={{CHECKOUT_SESSION_ID}}&receipt={receipt_id}"
-            stripe_cancel = f"{base}/give?stripe=cancel&receipt={receipt_id}"
+            stripe_success = f"{base}/support?stripe=success&session_id={{CHECKOUT_SESSION_ID}}&receipt={receipt_id}"
+            stripe_cancel = f"{base}/support?stripe=cancel&receipt={receipt_id}"
             checkout = payments.create_stripe_checkout(
                 settings=settings,
                 amount=amount,

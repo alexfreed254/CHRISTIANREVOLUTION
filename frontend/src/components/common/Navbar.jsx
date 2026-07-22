@@ -40,7 +40,7 @@ export default function Navbar() {
     { path: '/media', label: 'Media', icon: Library },
     { path: '/prayer', label: 'Prayer', icon: Heart },
     { path: '/portal', label: 'Discipleship', icon: GraduationCap, auth: true },
-    { path: '/give', label: 'Give', icon: Heart },
+    { path: '/support', label: 'Support', icon: Heart },
   ]
 
   const isActive = (path) =>

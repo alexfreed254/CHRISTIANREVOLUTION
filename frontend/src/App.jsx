@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import Navbar from './components/common/Navbar'
 import MiniAudioPlayer from './components/audio/MiniAudioPlayer'
@@ -10,7 +10,7 @@ import PrayerWall from './pages/PrayerWall'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Portal from './pages/Portal'
-import Give from './pages/Give'
+import Support from './pages/Support'
 import About from './pages/About'
 import MediaWatch from './pages/MediaWatch'
 import AdminDashboard from './pages/AdminDashboard'
@@ -44,7 +44,8 @@ function App() {
               <Route path="/register" element={<Register />} />
               <Route path="/portal" element={<Portal />} />
               <Route path="/about" element={<About />} />
-              <Route path="/give" element={<Give />} />
+              <Route path="/support" element={<Support />} />
+              <Route path="/give" element={<Navigate to="/support" replace />} />
               <Route path="/admin" element={<AdminDashboard />} />
             </Routes>
           </main>

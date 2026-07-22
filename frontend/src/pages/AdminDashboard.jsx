@@ -596,7 +596,7 @@ export default function AdminDashboard() {
                   onChange={(e) => setPaymentForm({ ...paymentForm, stripe_enabled: e.target.checked })}
                   className="w-4 h-4 rounded border-white/10 text-crm-purple"
                 />
-                <span className="text-sm text-crm-gray-light">Enable Stripe on the Give page</span>
+                <span className="text-sm text-crm-gray-light">Enable Stripe on Support and Donations</span>
               </label>
               <label className="block text-sm text-crm-gray-light">Church / ministry name (shown on checkout)</label>
               <input

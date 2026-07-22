@@ -18,7 +18,7 @@ export default function Footer() {
             <Link to="/live" className="hover:text-crm-white transition-colors">Live</Link>
             <Link to="/media" className="hover:text-crm-white transition-colors">Media</Link>
             <Link to="/prayer" className="hover:text-crm-white transition-colors">Prayer</Link>
-            <Link to="/give" className="hover:text-crm-white transition-colors">Support</Link>
+            <Link to="/support" className="hover:text-crm-white transition-colors">Support & Donations</Link>
           </div>
           <p className="text-xs text-crm-gray">© 2026 Christ Revolution Movement. All rights reserved.</p>
         </div>

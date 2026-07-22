@@ -24,7 +24,7 @@ const CATEGORIES = [
 const USD_PRESETS = [10, 25, 50, 100, 250]
 const KES_PRESETS = [500, 1000, 2500, 5000, 10000]
 
-export default function Give() {
+export default function Support() {
   const { user, token } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -296,7 +296,7 @@ export default function Give() {
               }}
               className="shield-button px-6 py-3"
             >
-              Give again
+              Support again
             </button>
           </GlassCard>
         </div>
@@ -316,7 +316,7 @@ export default function Give() {
           <div className="flex justify-center mb-4">
             <BrandLogo size="md" />
           </div>
-          <h1 className="text-4xl font-bold text-crm-white mb-4">Make a Donation</h1>
+          <h1 className="text-4xl font-bold text-crm-white mb-4">Support and Donations</h1>
           <p className="text-crm-gray-light max-w-2xl mx-auto">
             &ldquo;Each of you should give what you have decided in your heart to give… for God loves a cheerful giver.&rdquo;
             — 2 Corinthians 9:7
@@ -342,7 +342,7 @@ export default function Give() {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <GlassCard className="p-8">
-              <h2 className="text-2xl font-bold text-crm-white mb-6">Support Christ Revolution Movement</h2>
+              <h2 className="text-2xl font-bold text-crm-white mb-6">Make a Donation</h2>
 
               {awaitingStk && (
                 <div className="mb-6 p-5 rounded-xl bg-green-500/10 border border-green-500/30 text-center">
