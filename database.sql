@@ -188,12 +188,16 @@ CREATE TABLE IF NOT EXISTS payment_settings (
     mpesa_consumer_key    TEXT,
     mpesa_consumer_secret TEXT,
     mpesa_callback_url    TEXT,
+    stripe_publishable_key TEXT,
+    stripe_account_id     TEXT,
+    stripe_display_name   TEXT,
+    stripe_enabled        BOOLEAN DEFAULT false,
     updated_by            UUID REFERENCES members(id) ON DELETE SET NULL,
     updated_at            TIMESTAMP DEFAULT NOW(),
     created_at            TIMESTAMP DEFAULT NOW()
 );
 
-COMMENT ON TABLE payment_settings IS 'Superadmin-managed PayPal and M-Pesa receiving details';
+COMMENT ON TABLE payment_settings IS 'Superadmin-managed PayPal, Stripe, and M-Pesa receiving details';
 
 -- ───────────────────────────────────────────────────────────────────────────────
 -- Table: media

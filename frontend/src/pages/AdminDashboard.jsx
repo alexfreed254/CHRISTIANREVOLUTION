@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext'
 import useLiveStats from '../hooks/useLiveStats'
 import PayPalLogo from '../components/common/PayPalLogo'
 import MpesaLogo from '../components/common/MpesaLogo'
+import StripeLogo from '../components/common/StripeLogo'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -57,6 +58,10 @@ export default function AdminDashboard() {
     mpesa_consumer_key: '',
     mpesa_consumer_secret: '',
     mpesa_callback_url: '',
+    stripe_publishable_key: '',
+    stripe_account_id: '',
+    stripe_display_name: 'Christ Revolution Movement',
+    stripe_enabled: true,
   })
   const [paymentMeta, setPaymentMeta] = useState(null)
 
@@ -112,6 +117,10 @@ export default function AdminDashboard() {
           mpesa_consumer_key: '',
           mpesa_consumer_secret: '',
           mpesa_callback_url: res.data.mpesa_callback_url || '',
+          stripe_publishable_key: res.data.stripe_publishable_key || '',
+          stripe_account_id: res.data.stripe_account_id || '',
+          stripe_display_name: res.data.stripe_display_name || 'Christ Revolution Movement',
+          stripe_enabled: res.data.stripe_enabled !== false,
         })
       } else if (id === 'prayers') {
         const res = await axios.get('/api/admin/prayers', authHeaders(token))
@@ -227,6 +236,10 @@ export default function AdminDashboard() {
         mpesa_till_number: paymentForm.mpesa_till_number,
         mpesa_shortcode: paymentForm.mpesa_shortcode,
         mpesa_callback_url: paymentForm.mpesa_callback_url,
+        stripe_publishable_key: paymentForm.stripe_publishable_key,
+        stripe_account_id: paymentForm.stripe_account_id,
+        stripe_display_name: paymentForm.stripe_display_name,
+        stripe_enabled: paymentForm.stripe_enabled,
       }
       // Only send secrets when superadmin typed a new value (blank = leave unchanged)
       if (paymentForm.mpesa_passkey.trim()) payload.mpesa_passkey = paymentForm.mpesa_passkey.trim()
@@ -567,6 +580,66 @@ export default function AdminDashboard() {
 
         {tab === 'payments' && isSuperAdmin && (
           <form onSubmit={savePaymentSettings} className="space-y-8 max-w-3xl">
+            <div className="p-6 rounded-2xl bg-crm-dark/60 border border-[#635BFF]/30 space-y-4">
+              <div className="flex items-center gap-3 mb-2">
+                <StripeLogo className="h-7" />
+                <h2 className="text-lg font-bold text-crm-white">Stripe (cards · Apple Pay · Google Pay)</h2>
+              </div>
+              <p className="text-sm text-crm-gray">
+                Set where Stripe donations are collected. Add your <strong className="text-crm-white">Connected Account ID</strong> (acct_…)
+                so funds go directly to the church Stripe account. Server must have <code className="text-crm-purple">STRIPE_SECRET_KEY</code> set on Render.
+              </p>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={paymentForm.stripe_enabled}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, stripe_enabled: e.target.checked })}
+                  className="w-4 h-4 rounded border-white/10 text-crm-purple"
+                />
+                <span className="text-sm text-crm-gray-light">Enable Stripe on the Give page</span>
+              </label>
+              <label className="block text-sm text-crm-gray-light">Church / ministry name (shown on checkout)</label>
+              <input
+                value={paymentForm.stripe_display_name}
+                onChange={(e) => setPaymentForm({ ...paymentForm, stripe_display_name: e.target.value })}
+                placeholder="Christ Revolution Movement"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+              />
+              <label className="block text-sm text-crm-gray-light">Stripe Publishable Key (pk_live_… or pk_test_…)</label>
+              <input
+                value={paymentForm.stripe_publishable_key}
+                onChange={(e) => setPaymentForm({ ...paymentForm, stripe_publishable_key: e.target.value })}
+                placeholder="pk_live_..."
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white font-mono text-sm"
+              />
+              <label className="block text-sm text-crm-gray-light">Stripe Account ID — where money is collected (acct_…)</label>
+              <div className="flex gap-2">
+                <input
+                  value={paymentForm.stripe_account_id}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, stripe_account_id: e.target.value })}
+                  placeholder="acct_1234567890"
+                  className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white font-mono text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!confirm('Remove Stripe account ID?')) return
+                    const res = await axios.put('/api/admin/payment-settings', { stripe_account_id: '' }, authHeaders(token))
+                    setPaymentMeta(res.data.settings)
+                    setPaymentForm((p) => ({ ...p, stripe_account_id: '' }))
+                    toast.success('Stripe account cleared')
+                  }}
+                  className="px-4 py-2 rounded-xl border border-red-500/40 text-red-400 text-sm"
+                >
+                  Remove
+                </button>
+              </div>
+              {paymentMeta?.public && (
+                <p className="text-xs text-crm-gray">
+                  Stripe: {paymentMeta.public.stripe_configured ? 'Ready' : 'Not ready — set STRIPE_SECRET_KEY on server + enable above'}
+                </p>
+              )}
+            </div>
             <div className="p-6 rounded-2xl bg-crm-dark/60 border border-white/10 space-y-4">
               <div className="flex items-center gap-3 mb-2">
                 <PayPalLogo className="h-7" />

@@ -8,6 +8,7 @@ import GlassCard from '../components/common/GlassCard'
 import BrandLogo from '../components/common/BrandLogo'
 import PayPalLogo from '../components/common/PayPalLogo'
 import MpesaLogo from '../components/common/MpesaLogo'
+import StripeLogo from '../components/common/StripeLogo'
 import axios from 'axios'
 import Footer from '../components/common/Footer'
 import useLiveStats from '../hooks/useLiveStats'
@@ -34,7 +35,7 @@ export default function Give() {
   const [formData, setFormData] = useState({
     amount: '',
     category: 'tithe',
-    payment_method: 'paypal',
+    payment_method: 'stripe',
     is_recurring: false,
     currency: 'USD',
     phone_number: '',
@@ -49,8 +50,17 @@ export default function Give() {
 
   useEffect(() => {
     axios.get('/api/payments/config')
-      .then((res) => setConfig(res.data))
-      .catch(() => setConfig({ paypal_configured: false, mpesa_manual_available: false }))
+      .then((res) => {
+        setConfig(res.data)
+        if (res.data.stripe_configured) {
+          setFormData((p) => ({ ...p, payment_method: 'stripe' }))
+        } else if (res.data.paypal_configured) {
+          setFormData((p) => ({ ...p, payment_method: 'paypal' }))
+        } else if (res.data.mpesa_stk_configured || res.data.mpesa_manual_available) {
+          setFormData((p) => ({ ...p, payment_method: 'mpesa' }))
+        }
+      })
+      .catch(() => setConfig({ paypal_configured: false, mpesa_manual_available: false, stripe_configured: false }))
   }, [])
 
   useEffect(() => {
@@ -85,6 +95,28 @@ export default function Give() {
       })()
     } else if (paypal === 'cancel') {
       toast.error('PayPal payment was cancelled')
+      setSearchParams({})
+    }
+  }, [searchParams, setSearchParams])
+
+  // Handle Stripe return
+  useEffect(() => {
+    const stripe = searchParams.get('stripe')
+    const receipt = searchParams.get('receipt')
+    const sessionId = searchParams.get('session_id')
+    if (stripe === 'success' && receipt && sessionId) {
+      ;(async () => {
+        try {
+          await axios.post('/api/payments/stripe/verify', { receipt_id: receipt, session_id: sessionId })
+          setSuccessReceipt(receipt)
+          toast.success('Thank you! Your Stripe donation is confirmed.')
+        } catch (err) {
+          toast.error(err.response?.data?.error || 'Could not confirm Stripe payment')
+        }
+        setSearchParams({})
+      })()
+    } else if (stripe === 'cancel') {
+      toast.error('Stripe payment was cancelled')
       setSearchParams({})
     }
   }, [searchParams, setSearchParams])
@@ -147,8 +179,12 @@ export default function Give() {
       toast.error('Please enter a valid amount')
       return
     }
+    if (formData.payment_method === 'stripe' && config && !config.stripe_configured) {
+      toast.error('Stripe is not set up yet. Superadmin must enable Stripe in Payment Setup.')
+      return
+    }
     if (formData.payment_method === 'paypal' && config && !config.paypal_configured) {
-      toast.error('PayPal is not set up yet. Please try M-Pesa or contact the church office.')
+      toast.error('PayPal is not set up yet. Please try Stripe, M-Pesa, or contact the church office.')
       return
     }
     if (formData.payment_method === 'mpesa' && config && !config.mpesa_stk_configured && !config.mpesa_manual_available) {
@@ -380,7 +416,7 @@ export default function Give() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-sm font-medium text-crm-gray-light">Amount *</label>
-                      {formData.payment_method === 'paypal' && (
+                      {formData.payment_method !== 'mpesa' && (
                         <select
                           name="currency"
                           value={formData.currency}
@@ -390,6 +426,7 @@ export default function Give() {
                           <option value="USD">USD</option>
                           <option value="EUR">EUR</option>
                           <option value="GBP">GBP</option>
+                          {formData.payment_method === 'stripe' && <option value="KES">KES</option>}
                         </select>
                       )}
                       {formData.payment_method === 'mpesa' && (
@@ -428,7 +465,19 @@ export default function Give() {
 
                   <div>
                     <label className="block text-sm font-medium text-crm-gray-light mb-3">Payment Method</label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => selectMethod('stripe')}
+                        className={`p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-3 ${
+                          formData.payment_method === 'stripe'
+                            ? 'border-[#635BFF] bg-[#635BFF]/10'
+                            : 'border-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        <StripeLogo className="h-8 w-auto" />
+                        <div className="text-sm text-crm-gray text-center">Card · Apple Pay · Google Pay</div>
+                      </button>
                       <button
                         type="button"
                         onClick={() => selectMethod('paypal')}
@@ -439,7 +488,7 @@ export default function Give() {
                         }`}
                       >
                         <PayPalLogo className="h-8 w-auto" />
-                        <div className="text-sm text-crm-gray text-center">Card / PayPal · International</div>
+                        <div className="text-sm text-crm-gray text-center">PayPal · International</div>
                       </button>
                       <button
                         type="button"
@@ -451,9 +500,12 @@ export default function Give() {
                         }`}
                       >
                         <MpesaLogo className="h-8 w-auto" />
-                        <div className="text-sm text-crm-gray text-center">Kenya · STK Push / Till</div>
+                        <div className="text-sm text-crm-gray text-center">Kenya · STK / Till</div>
                       </button>
                     </div>
+                    {config && formData.payment_method === 'stripe' && !config.stripe_configured && (
+                      <p className="text-xs text-amber-400 mt-2">Stripe not configured — superadmin must enable in Payment Setup.</p>
+                    )}
                     {config && formData.payment_method === 'paypal' && !config.paypal_configured && (
                       <p className="text-xs text-amber-400 mt-2">PayPal receiving email not configured yet.</p>
                     )}
@@ -502,7 +554,7 @@ export default function Give() {
                     </div>
                   )}
 
-                  {formData.payment_method === 'paypal' && (
+                  {formData.payment_method !== 'mpesa' && (
                     <div className="flex items-start">
                       <input
                         type="checkbox"
@@ -513,7 +565,8 @@ export default function Give() {
                         className="w-4 h-4 mt-1 rounded border-white/10 bg-crm-black/50 text-crm-purple focus:ring-crm-purple"
                       />
                       <label htmlFor="is_recurring" className="ml-2 text-sm text-crm-gray">
-                        Make this a recurring monthly donation (handled by PayPal)
+                        Make this a recurring monthly donation
+                        {formData.payment_method === 'stripe' ? ' (via Stripe)' : ' (via PayPal)'}
                       </label>
                     </div>
                   )}
@@ -527,6 +580,12 @@ export default function Give() {
                       <>
                         <div className="w-5 h-5 border-2 border-crm-black/30 border-t-crm-black rounded-full animate-spin" />
                         Processing...
+                      </>
+                    ) : formData.payment_method === 'stripe' ? (
+                      <>
+                        <StripeLogo className="h-5 w-auto" />
+                        Continue to Stripe
+                        <ArrowRight className="w-4 h-4" />
                       </>
                     ) : formData.payment_method === 'paypal' ? (
                       <>
@@ -554,8 +613,8 @@ export default function Give() {
             <GlassCard className="p-6">
               <h3 className="text-lg font-bold text-crm-white mb-4">How it works</h3>
               <div className="space-y-4 text-sm text-crm-gray-light">
-                <p><span className="text-crm-white font-medium">International:</span> PayPal Checkout for cards and PayPal balance.</p>
-                <p><span className="text-crm-white font-medium">Kenya:</span> M-Pesa STK Push on your phone, or Lipa na M-Pesa Till when STK is unavailable.</p>
+                <p><span className="text-crm-white font-medium">International:</span> Stripe (cards, Apple Pay, Google Pay) or PayPal Checkout.</p>
+                <p><span className="text-crm-white font-medium">Kenya:</span> M-Pesa STK Push or Till number.</p>
               </div>
             </GlassCard>
             <GlassCard className="p-6 bg-gradient-to-br from-crm-purple/10 to-transparent border-crm-purple/20">

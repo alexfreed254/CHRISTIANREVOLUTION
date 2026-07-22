@@ -37,3 +37,9 @@ CREATE POLICY "Service role bypass payment_settings" ON payment_settings
 
 GRANT ALL ON payment_settings TO service_role;
 GRANT SELECT ON payment_settings TO authenticated;
+
+-- Stripe columns (safe re-run)
+ALTER TABLE payment_settings ADD COLUMN IF NOT EXISTS stripe_publishable_key TEXT;
+ALTER TABLE payment_settings ADD COLUMN IF NOT EXISTS stripe_account_id TEXT;
+ALTER TABLE payment_settings ADD COLUMN IF NOT EXISTS stripe_display_name TEXT;
+ALTER TABLE payment_settings ADD COLUMN IF NOT EXISTS stripe_enabled BOOLEAN DEFAULT false;

@@ -21,6 +21,10 @@ _SETTINGS_CACHE: dict[str, Any] = {
     "mpesa_consumer_key": os.environ.get("MPESA_CONSUMER_KEY") or "",
     "mpesa_consumer_secret": os.environ.get("MPESA_CONSUMER_SECRET") or "",
     "mpesa_callback_url": os.environ.get("MPESA_CALLBACK_URL") or "",
+    "stripe_publishable_key": os.environ.get("STRIPE_PUBLISHABLE_KEY") or "",
+    "stripe_account_id": os.environ.get("STRIPE_ACCOUNT_ID") or "",
+    "stripe_display_name": os.environ.get("STRIPE_DISPLAY_NAME") or "Christ Revolution Movement",
+    "stripe_enabled": os.environ.get("STRIPE_ENABLED", "").lower() in ("1", "true", "yes"),
 }
 
 
@@ -40,10 +44,15 @@ def _env_overlay(row: dict | None) -> dict:
         ("mpesa_consumer_key", "MPESA_CONSUMER_KEY"),
         ("mpesa_consumer_secret", "MPESA_CONSUMER_SECRET"),
         ("mpesa_callback_url", "MPESA_CALLBACK_URL"),
+        ("stripe_publishable_key", "STRIPE_PUBLISHABLE_KEY"),
+        ("stripe_account_id", "STRIPE_ACCOUNT_ID"),
+        ("stripe_display_name", "STRIPE_DISPLAY_NAME"),
     ]:
         env_val = (os.environ.get(env_key) or "").strip()
         if env_val:
             base[key] = env_val
+    if os.environ.get("STRIPE_ENABLED", "").lower() in ("1", "true", "yes"):
+        base["stripe_enabled"] = True
     return base
 
 
@@ -66,7 +75,33 @@ def public_settings(settings: dict) -> dict:
         "mpesa_manual_available": bool((settings.get("mpesa_till_number") or "").strip()),
         "paypal_mode": (os.environ.get("PAYPAL_MODE") or "sandbox").lower(),
         "mpesa_env": (os.environ.get("MPESA_ENV") or "sandbox").lower(),
+        "stripe_publishable_key": (settings.get("stripe_publishable_key") or "").strip() or None,
+        "stripe_display_name": (settings.get("stripe_display_name") or "Christ Revolution Movement").strip(),
+        "stripe_configured": stripe_is_configured(settings),
     }
+
+
+def stripe_secret_key() -> str:
+    return (os.environ.get("STRIPE_SECRET_KEY") or "").strip()
+
+
+def stripe_webhook_secret() -> str:
+    return (os.environ.get("STRIPE_WEBHOOK_SECRET") or "").strip()
+
+
+def stripe_is_configured(settings: dict) -> bool:
+    if not stripe_secret_key():
+        return False
+    enabled = settings.get("stripe_enabled")
+    if enabled is False or enabled == 0 or str(enabled).lower() in ("false", "0", "no"):
+        return False
+    if enabled is True or enabled == 1 or str(enabled).lower() in ("true", "1", "yes"):
+        return True
+    return bool(
+        (settings.get("stripe_publishable_key") or "").strip()
+        or (settings.get("stripe_account_id") or "").strip()
+        or os.environ.get("STRIPE_ENABLED", "").lower() in ("1", "true", "yes")
+    )
 
 
 def load_settings(*, supabase, db_ready, try_supabase) -> dict:
@@ -103,10 +138,17 @@ def save_settings(
         "mpesa_consumer_key",
         "mpesa_consumer_secret",
         "mpesa_callback_url",
+        "stripe_publishable_key",
+        "stripe_account_id",
+        "stripe_display_name",
+        "stripe_enabled",
     }
     payload = {k: updates[k] for k in allowed if k in updates}
     # Normalize empties to null for clearable display fields
-    clearable = ("paypal_email", "paypal_client_id", "mpesa_till_number", "mpesa_shortcode", "mpesa_callback_url")
+    clearable = (
+        "paypal_email", "paypal_client_id", "mpesa_till_number", "mpesa_shortcode",
+        "mpesa_callback_url", "stripe_publishable_key", "stripe_account_id", "stripe_display_name",
+    )
     for key in clearable:
         if key in payload and isinstance(payload[key], str) and not payload[key].strip():
             payload[key] = None
@@ -127,7 +169,11 @@ def save_settings(
 
     # Update memory cache for provided keys
     for k, v in payload.items():
-        if k in _SETTINGS_CACHE:
+        if k == "stripe_enabled":
+            _SETTINGS_CACHE["stripe_enabled"] = (
+                bool(v) if not isinstance(v, str) else str(v).lower() in ("true", "1", "yes")
+            )
+        elif k in _SETTINGS_CACHE:
             _SETTINGS_CACHE[k] = v or ""
 
     if not db_ready or supabase is None:
@@ -172,6 +218,10 @@ def admin_settings_view(settings: dict) -> dict:
         "mpesa_consumer_secret_set": bool(settings.get("mpesa_consumer_secret")),
         "mpesa_passkey_masked": mask(settings.get("mpesa_passkey")),
         "mpesa_consumer_key_masked": mask(settings.get("mpesa_consumer_key")),
+        "stripe_publishable_key": settings.get("stripe_publishable_key") or "",
+        "stripe_account_id": settings.get("stripe_account_id") or "",
+        "stripe_display_name": settings.get("stripe_display_name") or "Christ Revolution Movement",
+        "stripe_enabled": bool(settings.get("stripe_enabled")),
         "public": public_settings(settings),
     }
 
@@ -580,3 +630,135 @@ def parse_stk_callback(body: dict) -> dict:
 
 def new_receipt_id() -> str:
     return f"CRM-{secrets.token_hex(5).upper()}"
+
+
+# ─── Stripe Checkout ──────────────────────────────────────────────────────────
+
+def _stripe_minor_units(amount: float, currency: str) -> int:
+    currency = (currency or "USD").upper()
+    zero_decimal = {"JPY", "KRW", "VND"}
+    if currency in zero_decimal:
+        return int(round(amount))
+    return int(round(float(amount) * 100))
+
+
+def create_stripe_checkout(
+    *,
+    settings: dict,
+    amount: float,
+    currency: str,
+    category: str,
+    receipt_id: str,
+    success_url: str,
+    cancel_url: str,
+    donor_email: str | None = None,
+    is_recurring: bool = False,
+) -> dict:
+    """Create Stripe Checkout Session. Funds go to connected account when configured."""
+    secret = stripe_secret_key()
+    if not secret or not stripe_is_configured(settings):
+        return {
+            "ok": False,
+            "error": "Stripe is not configured. Superadmin must enable Stripe and set STRIPE_SECRET_KEY on the server.",
+        }
+
+    try:
+        import stripe
+    except ImportError:
+        return {"ok": False, "error": "Stripe library not installed"}
+
+    currency = (currency or "USD").upper()
+    minor = _stripe_minor_units(amount, currency)
+    if minor < 50 and currency == "USD":
+        return {"ok": False, "error": "Minimum Stripe donation is $0.50"}
+
+    stripe.api_key = secret
+    church_name = (settings.get("stripe_display_name") or "Christ Revolution Movement").strip()
+    connected = (settings.get("stripe_account_id") or "").strip()
+
+    line_item = {
+        "price_data": {
+            "currency": currency.lower(),
+            "product_data": {
+                "name": f"{church_name} — {category.replace('_', ' ').title()}",
+                "description": f"Donation receipt {receipt_id}",
+            },
+            "unit_amount": minor,
+        },
+        "quantity": 1,
+    }
+
+    if is_recurring:
+        line_item["price_data"]["recurring"] = {"interval": "month"}
+
+    session_params: dict[str, Any] = {
+        "mode": "subscription" if is_recurring else "payment",
+        "line_items": [line_item],
+        "success_url": success_url,
+        "cancel_url": cancel_url,
+        "client_reference_id": receipt_id,
+        "metadata": {"receipt_id": receipt_id, "category": category},
+    }
+    if donor_email:
+        session_params["customer_email"] = donor_email
+
+    try:
+        if connected:
+            session = stripe.checkout.Session.create(**session_params, stripe_account=connected)
+        else:
+            session = stripe.checkout.Session.create(**session_params)
+        return {
+            "ok": True,
+            "session_id": session.id,
+            "checkout_url": session.url,
+            "mode": "subscription" if is_recurring else "payment",
+        }
+    except Exception as e:
+        print(f"Stripe checkout error: {e}")
+        return {"ok": False, "error": str(e)}
+
+
+def verify_stripe_session(session_id: str, *, settings: dict | None = None) -> dict:
+    secret = stripe_secret_key()
+    if not secret or not session_id:
+        return {"ok": False, "error": "Missing Stripe configuration or session id"}
+    try:
+        import stripe
+        stripe.api_key = secret
+        connected = ""
+        if settings:
+            connected = (settings.get("stripe_account_id") or "").strip()
+        if connected:
+            session = stripe.checkout.Session.retrieve(session_id, stripe_account=connected)
+        else:
+            session = stripe.checkout.Session.retrieve(session_id)
+        paid = session.payment_status == "paid" or session.status == "complete"
+        receipt_id = (session.client_reference_id or session.metadata.get("receipt_id") or "").strip()
+        txn = session.payment_intent or session.subscription or session.id
+        return {
+            "ok": paid,
+            "receipt_id": receipt_id,
+            "transaction_id": str(txn) if txn else session_id,
+            "status": session.payment_status or session.status,
+        }
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+def parse_stripe_webhook(payload: bytes, sig_header: str) -> dict:
+    secret = stripe_webhook_secret()
+    if not secret:
+        return {"ok": False, "error": "Webhook secret not configured"}
+    try:
+        import stripe
+        event = stripe.Webhook.construct_event(payload, sig_header, secret)
+        if event["type"] == "checkout.session.completed":
+            session = event["data"]["object"]
+            return {
+                "ok": True,
+                "receipt_id": session.get("client_reference_id") or (session.get("metadata") or {}).get("receipt_id"),
+                "transaction_id": session.get("payment_intent") or session.get("subscription") or session.get("id"),
+            }
+        return {"ok": False, "ignored": True, "type": event["type"]}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}

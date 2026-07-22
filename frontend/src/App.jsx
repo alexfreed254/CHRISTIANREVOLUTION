@@ -11,6 +11,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Portal from './pages/Portal'
 import Give from './pages/Give'
+import About from './pages/About'
 import MediaWatch from './pages/MediaWatch'
 import AdminDashboard from './pages/AdminDashboard'
 import { AuthProvider } from './context/AuthContext'
@@ -42,6 +43,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/portal" element={<Portal />} />
+              <Route path="/about" element={<About />} />
               <Route path="/give" element={<Give />} />
               <Route path="/admin" element={<AdminDashboard />} />
             </Routes>

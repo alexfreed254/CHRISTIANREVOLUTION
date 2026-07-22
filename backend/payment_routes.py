@@ -150,8 +150,10 @@ def register_payment_routes(
         method = (data.get("payment_method") or "").lower().strip()
         if method in ("card", "paypal", "paypal_card"):
             method = "paypal"
-        if method not in ("paypal", "mpesa"):
-            return jsonify({"error": "Choose PayPal or M-Pesa"}), 400
+        if method in ("stripe", "card_stripe"):
+            method = "stripe"
+        if method not in ("paypal", "mpesa", "stripe"):
+            return jsonify({"error": "Choose Stripe, PayPal, or M-Pesa"}), 400
 
         currency = (data.get("currency") or ("KES" if method == "mpesa" else "USD")).upper()
         category = data.get("category") or data.get("type") or "tithe"
@@ -216,6 +218,43 @@ def register_payment_routes(
         base = request.host_url.rstrip("/")
         return_url = f"{base}/give?paypal=success&receipt={receipt_id}"
         cancel_url = f"{base}/give?paypal=cancel&receipt={receipt_id}"
+
+        if method == "stripe":
+            stripe_success = f"{base}/give?stripe=success&session_id={{CHECKOUT_SESSION_ID}}&receipt={receipt_id}"
+            stripe_cancel = f"{base}/give?stripe=cancel&receipt={receipt_id}"
+            checkout = payments.create_stripe_checkout(
+                settings=settings,
+                amount=amount,
+                currency=currency if currency != "KES" else "USD",
+                category=category,
+                receipt_id=receipt_id,
+                success_url=stripe_success,
+                cancel_url=stripe_cancel,
+                donor_email=donor_email or None,
+                is_recurring=is_recurring,
+            )
+            if not checkout.get("ok"):
+                return jsonify({"error": checkout.get("error") or "Stripe unavailable", "receipt_id": receipt_id}), 400
+            session_id = checkout.get("session_id")
+            try:
+                db_execute(
+                    lambda client: client.table("giving")
+                    .update({"checkout_id": session_id})
+                    .eq("receipt_id", receipt_id)
+                    .execute()
+                )
+            except Exception as e:
+                print(f"stripe checkout_id update: {e}")
+            _notify()
+            return jsonify({
+                "status": "redirect",
+                "payment_method": "stripe",
+                "receipt_id": receipt_id,
+                "approve_url": checkout.get("checkout_url"),
+                "session_id": session_id,
+                "donation": donation,
+                "message": "Redirecting to secure Stripe Checkout…",
+            }), 200
 
         if method == "paypal":
             paypal = payments.create_paypal_order(
@@ -440,3 +479,43 @@ def register_payment_routes(
             "donation": row,
             "receipt_id": receipt_id,
         }), 200
+
+    @app.route("/api/payments/stripe/verify", methods=["POST"])
+    def stripe_verify():
+        data = request.get_json(silent=True) or {}
+        session_id = (data.get("session_id") or "").strip()
+        receipt_id = (data.get("receipt_id") or "").strip()
+        settings = payments.load_settings(
+            supabase=supabase, db_ready=db_ready(), try_supabase=try_supabase
+        )
+        verified = payments.verify_stripe_session(session_id, settings=settings)
+        if not verified.get("ok"):
+            return jsonify({"error": verified.get("error") or "Payment not completed"}), 400
+        rid = verified.get("receipt_id") or receipt_id
+        row = mark_paid(
+            receipt_id=rid,
+            checkout_id=session_id,
+            transaction_id=verified.get("transaction_id") or session_id,
+            notes="Stripe Checkout completed",
+        )
+        return jsonify({
+            "status": "completed",
+            "donation": row,
+            "receipt_id": rid,
+        }), 200
+
+    @app.route("/api/payments/stripe/webhook", methods=["POST"])
+    def stripe_webhook():
+        payload = request.get_data()
+        sig = request.headers.get("Stripe-Signature", "")
+        parsed = payments.parse_stripe_webhook(payload, sig)
+        if parsed.get("ignored"):
+            return jsonify({"received": True}), 200
+        if not parsed.get("ok"):
+            return jsonify({"error": parsed.get("error") or "Invalid webhook"}), 400
+        mark_paid(
+            receipt_id=parsed.get("receipt_id"),
+            transaction_id=parsed.get("transaction_id"),
+            notes="Stripe webhook checkout.session.completed",
+        )
+        return jsonify({"received": True}), 200

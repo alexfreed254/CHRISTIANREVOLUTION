@@ -23,14 +23,16 @@ export default function VideoCard({ media, index = 0, onPlayAudio }) {
     return count.toString()
   }
 
+  const thumb = media.thumbnail_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(media.speaker || 'CRM')}&background=8B7FC7&color=0a0a0a&size=512`
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: index * 0.05 }}
       className="group" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-      <Link to={`/media/${media.id}`} className="block">
-        <div className="relative aspect-video rounded-xl overflow-hidden bg-crm-dark">
-          {!imageLoaded && <div className="absolute inset-0 bg-gradient-to-br from-crm-dark to-crm-black animate-pulse" />}
-          <img src={media.thumbnail_url} alt={media.title}
-            className={`w-full h-full object-cover transition-transform duration-500 ${isHovered ? 'scale-110' : 'scale-100'} ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+      <Link to={`/media/${media.id}`} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-crm-purple rounded-xl">
+        <div className="relative aspect-video rounded-xl overflow-hidden bg-crm-dark shadow-lg shadow-black/20">
+          {!imageLoaded && <div className="absolute inset-0 bg-gradient-to-br from-crm-dark via-crm-purple/5 to-crm-black animate-pulse" />}
+          <img src={thumb} alt={media.title}
+            className={`w-full h-full object-cover transition-transform duration-700 ease-out ${isHovered ? 'scale-105' : 'scale-100'} ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoad={() => setImageLoaded(true)} loading="lazy" />
           <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/80 rounded text-xs font-medium">{formatDuration(media.duration)}</div>
           {media.is_live && <div className="absolute top-2 left-2"><LiveBadge size="sm" /></div>}
