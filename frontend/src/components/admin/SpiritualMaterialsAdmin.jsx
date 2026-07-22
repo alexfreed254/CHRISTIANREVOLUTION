@@ -52,9 +52,16 @@ function authHeaders(token) {
 export default function SpiritualMaterialsAdmin({ token }) {
   const [stats, setStats] = useState(null)
   const [materials, setMaterials] = useState([])
+  const [platformLanguages, setPlatformLanguages] = useState([{ code: 'en', label: 'English' }])
   const [form, setForm] = useState(EMPTY_FORM)
   const [loading, setLoading] = useState(false)
   const [filterStatus, setFilterStatus] = useState('')
+
+  useEffect(() => {
+    axios.get('/api/languages').then((res) => {
+      if (res.data.languages?.length) setPlatformLanguages(res.data.languages)
+    }).catch(() => {})
+  }, [])
 
   const load = async () => {
     setLoading(true)
@@ -248,12 +255,9 @@ export default function SpiritualMaterialsAdmin({ token }) {
           <div>
             <label className="block text-sm text-crm-gray-light mb-1">Language</label>
             <select value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white">
-              <option value="en">English</option>
-              <option value="sw">Kiswahili</option>
-              <option value="fr">French</option>
-              <option value="es">Spanish</option>
-              <option value="pt">Portuguese</option>
-              <option value="ar">Arabic</option>
+              {platformLanguages.map((lang) => (
+                <option key={lang.code} value={lang.code}>{lang.label}{lang.native && lang.native !== lang.label ? ` (${lang.native})` : ''}</option>
+              ))}
             </select>
           </div>
           <div>

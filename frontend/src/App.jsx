@@ -17,6 +17,7 @@ import DiscipleshipLibrary from './pages/DiscipleshipLibrary'
 import SpiritualMaterialView from './pages/SpiritualMaterialView'
 import AdminDashboard from './pages/AdminDashboard'
 import { AuthProvider } from './context/AuthContext'
+import { LanguageProvider } from './context/LanguageContext'
 import { PlayerProvider } from './context/PlayerContext'
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
 
   return (
     <AuthProvider>
+      <LanguageProvider>
       <PlayerProvider>
         <div className="min-h-screen bg-crm-black">
           <Navbar />
@@ -56,6 +58,7 @@ function App() {
           <MiniAudioPlayer />
         </div>
       </PlayerProvider>
+      </LanguageProvider>
     </AuthProvider>
   )
 }

@@ -22,6 +22,8 @@ try:
         is_publicly_visible,
         effective_status,
     )
+    from .kenya_languages import catalog_response, is_supported as is_lang_supported
+    from .translation_service import apply_content_language, translation_enabled
 except ImportError:
     from spiritual_materials import (
         MATERIAL_TYPES,
@@ -34,6 +36,8 @@ except ImportError:
         is_publicly_visible,
         effective_status,
     )
+    from kenya_languages import catalog_response, is_supported as is_lang_supported
+    from translation_service import apply_content_language, translation_enabled
 
 
 def register_spiritual_routes(
@@ -171,16 +175,21 @@ def register_spiritual_routes(
     # ── Public ─────────────────────────────────────────────────────────────
     @app.route('/api/discipleship/meta', methods=['GET'])
     def discipleship_meta():
+        catalog = catalog_response()
         return jsonify({
             'material_types': [{'id': t, 'label': MATERIAL_TYPE_LABELS.get(t, t)} for t in MATERIAL_TYPES],
             'sections': LIBRARY_SECTIONS,
-            'languages': SUPPORTED_LANGUAGES,
+            'languages': catalog['languages'],
+            'language_groups': catalog['groups'],
+            'ai_translation': translation_enabled(),
         }), 200
 
     @app.route('/api/discipleship/library', methods=['GET'])
     def discipleship_library():
         member = optional_jwt_member()
         lang = (request.args.get('lang') or (member or {}).get('preferred_language') or 'en').lower()
+        if not is_lang_supported(lang):
+            lang = 'en'
         section = (request.args.get('section') or '').strip()
         material_type = (request.args.get('type') or '').strip()
         category = (request.args.get('category') or '').strip()
@@ -214,7 +223,11 @@ def register_spiritual_routes(
         for base in bases:
             picked = pick_language_version(materials, base['id'], lang) or base
             if picked and is_publicly_visible(picked, member_logged_in=bool(member)):
-                localized.append(picked)
+                localized.append(
+                    apply_content_language(
+                        picked, lang, text_fields=['title', 'description', 'category', 'ministry', 'speaker']
+                    )
+                )
 
         localized.sort(key=lambda m: m.get('publish_at') or m.get('created_at') or '', reverse=True)
         page = max(1, int(request.args.get('page') or 1))
@@ -229,12 +242,15 @@ def register_spiritual_routes(
             'per_page': per_page,
             'total_pages': max(1, (len(localized) + per_page - 1) // per_page),
             'language': lang,
+            'ai_translation': translation_enabled(),
         }), 200
 
     @app.route('/api/discipleship/today', methods=['GET'])
     def discipleship_today():
         member = optional_jwt_member()
         lang = (request.args.get('lang') or (member or {}).get('preferred_language') or 'en').lower()
+        if not is_lang_supported(lang):
+            lang = 'en'
         materials = _load_all_materials()
         stats = build_dashboard_stats(materials)
         today = stats.get('today_material')
@@ -242,16 +258,22 @@ def register_spiritual_routes(
             today = pick_language_version(materials, today['id'], lang) or today
             if not is_publicly_visible(today, member_logged_in=bool(member)):
                 today = None
-        return jsonify({'material': today, 'language': lang}), 200
+            elif today:
+                today = apply_content_language(today, lang)
+        return jsonify({'material': today, 'language': lang, 'ai_translation': translation_enabled()}), 200
 
     @app.route('/api/discipleship/materials/<material_id>', methods=['GET'])
     def discipleship_material_detail(material_id):
         member = optional_jwt_member()
         lang = (request.args.get('lang') or (member or {}).get('preferred_language') or 'en').lower()
+        if not is_lang_supported(lang):
+            lang = 'en'
         materials = _load_all_materials()
         material = pick_language_version(materials, material_id, lang)
         if not material or not is_publicly_visible(material, member_logged_in=bool(member)):
             return jsonify({'error': 'Material not found'}), 404
+
+        material = apply_content_language(material, lang)
 
         translations = [
             normalize_material_row(m) for m in materials
@@ -282,6 +304,7 @@ def register_spiritual_routes(
             'translations': translations,
             'saved': saved,
             'completed': completed,
+            'ai_translation': translation_enabled(),
         }), 200
 
     @app.route('/api/discipleship/materials/<material_id>/save', methods=['POST'])

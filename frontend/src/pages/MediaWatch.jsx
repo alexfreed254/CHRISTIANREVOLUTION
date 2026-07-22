@@ -8,12 +8,15 @@ import toast from 'react-hot-toast'
 import Footer from '../components/common/Footer'
 import ReactionBar from '../components/common/ReactionBar'
 import VideoCard from '../components/media/VideoCard'
+import LanguageSelector from '../components/common/LanguageSelector'
 import { usePlayer } from '../context/PlayerContext'
+import { useLanguage } from '../context/LanguageContext'
 
 export default function MediaWatch() {
   const { mediaId } = useParams()
   const navigate = useNavigate()
   const { playTrack } = usePlayer()
+  const { language, t, aiTranslation } = useLanguage()
   const [media, setMedia] = useState(null)
   const [related, setRelated] = useState([])
   const [reactions, setReactions] = useState(null)
@@ -23,16 +26,17 @@ export default function MediaWatch() {
 
   useEffect(() => {
     fetchMedia()
-  }, [mediaId])
+  }, [mediaId, language])
 
   const fetchMedia = async () => {
     setLoading(true)
     try {
-      const res = await axios.get(`/api/media/${mediaId}`)
+      const langParam = language !== 'en' ? { lang: language } : {}
+      const res = await axios.get(`/api/media/${mediaId}`, { params: langParam })
       setMedia(res.data.media)
       setReactions(res.data.reactions || null)
       const lib = await axios.get('/api/media/library', {
-        params: { per_page: 6, sort: 'most_viewed', speaker: res.data.media?.speaker || undefined },
+        params: { per_page: 6, sort: 'most_viewed', speaker: res.data.media?.speaker || undefined, ...langParam },
       })
       const items = (lib.data.media || []).filter((m) => String(m.id) !== String(mediaId)).slice(0, 4)
       setRelated(items)
@@ -72,9 +76,13 @@ export default function MediaWatch() {
       <div className={`mx-auto px-4 sm:px-6 lg:px-8 ${theater ? 'max-w-[1600px]' : 'max-w-6xl'}`}>
         {!theater && (
           <Link to="/media" className="inline-flex items-center gap-2 text-crm-gray-light hover:text-crm-white mb-4 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Media Library
+            <ArrowLeft className="w-4 h-4" /> {t('media.library')}
           </Link>
         )}
+
+        <div className="flex justify-end mb-3">
+          <LanguageSelector compact />
+        </div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
           <div className={`relative overflow-hidden bg-black mb-6 group ${theater ? 'rounded-none lg:rounded-2xl' : 'rounded-2xl border border-white/10 aspect-video'}`}>
@@ -112,6 +120,9 @@ export default function MediaWatch() {
           <div className="flex flex-col lg:flex-row gap-8">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold text-crm-white mb-3 leading-tight">{media.title}</h1>
+              {media._ai_translated && aiTranslation && (
+                <p className="text-xs text-crm-purple mb-2">{t('common.aiTranslated')}</p>
+              )}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-crm-gray mb-6">
                 <span className="flex items-center gap-1.5"><User className="w-4 h-4" />{media.speaker || 'CRM'}</span>
                 <span className="flex items-center gap-1.5"><Eye className="w-4 h-4" />{(media.view_count || 0).toLocaleString()} views</span>

@@ -9,6 +9,8 @@ import axios from 'axios'
 import GlassCard from '../components/common/GlassCard'
 import Footer from '../components/common/Footer'
 import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../context/LanguageContext'
+import LanguageSelector from '../components/common/LanguageSelector'
 
 const SECTION_ICONS = {
   courses: GraduationCap,
@@ -38,17 +40,17 @@ const TYPE_ICONS = {
 
 export default function DiscipleshipLibrary() {
   const { user, token } = useAuth()
+  const { language, t, aiTranslation } = useLanguage()
   const [sections, setSections] = useState([])
   const [materials, setMaterials] = useState([])
   const [today, setToday] = useState(null)
   const [activeSection, setActiveSection] = useState('')
   const [query, setQuery] = useState('')
-  const [lang, setLang] = useState(user?.preferred_language || 'en')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadLibrary()
-  }, [activeSection, query, lang, user])
+  }, [activeSection, query, language, user, token])
 
   const loadLibrary = async () => {
     setLoading(true)
@@ -58,9 +60,9 @@ export default function DiscipleshipLibrary() {
         axios.get('/api/discipleship/meta'),
         axios.get('/api/discipleship/library', {
           headers,
-          params: { section: activeSection || undefined, q: query || undefined, lang },
+          params: { section: activeSection || undefined, q: query || undefined, lang: language },
         }),
-        axios.get('/api/discipleship/today', { headers, params: { lang } }),
+        axios.get('/api/discipleship/today', { headers, params: { lang: language } }),
       ])
       setSections(metaRes.data.sections || [])
       setMaterials(libRes.data.materials || [])
@@ -76,10 +78,13 @@ export default function DiscipleshipLibrary() {
     <div className="page-shell safe-bottom">
       <div className="page-container max-w-7xl">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8 sm:mb-10">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-crm-white mb-3">Discipleship Library</h1>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-crm-white mb-3">{t('library.title')}</h1>
           <p className="text-sm sm:text-base text-crm-gray-light max-w-2xl mx-auto px-2">
-            Daily spiritual materials, courses, devotionals, Bible studies, and training resources for every stage of your journey.
+            {t('library.subtitle')}
           </p>
+          {aiTranslation && language !== 'en' && (
+            <p className="text-xs text-crm-purple mt-2">{t('common.aiTranslated')}</p>
+          )}
         </motion.div>
 
         {today && (
@@ -89,16 +94,16 @@ export default function DiscipleshipLibrary() {
                 <img src={today.thumbnail_url} alt="" className="w-full lg:w-48 aspect-video object-cover rounded-xl shrink-0" />
               )}
               <div className="flex-1 min-w-0 w-full">
-                <p className="text-xs uppercase tracking-widest text-crm-purple mb-2">Today&apos;s Spiritual Material</p>
+                <p className="text-xs uppercase tracking-widest text-crm-purple mb-2">{t('library.today')}</p>
                 <h2 className="text-lg sm:text-2xl font-bold text-crm-white mb-2">{today.title}</h2>
                 <p className="text-sm text-crm-gray-light mb-4">{today.description}</p>
                 <div className="flex flex-col sm:flex-row flex-wrap gap-2">
-                  <Link to={`/discipleship/${today.id}?lang=${lang}`} className="shield-button text-center w-full sm:w-auto">Read</Link>
+                  <Link to={`/discipleship/${today.id}?lang=${language}`} className="shield-button text-center w-full sm:w-auto">{t('library.read')}</Link>
                   {today.audio_url && (
                     <a href={today.audio_url} target="_blank" rel="noreferrer" className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5">Listen</a>
                   )}
                   {today.video_url && (
-                    <Link to={`/discipleship/${today.id}?lang=${lang}`} className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5">Watch</Link>
+                    <Link to={`/discipleship/${today.id}?lang=${language}`} className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5">{t('library.watch')}</Link>
                   )}
                 </div>
               </div>
@@ -112,25 +117,11 @@ export default function DiscipleshipLibrary() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search materials, speakers, topics..."
+              placeholder={t('library.search')}
               className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
             />
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Globe className="w-4 h-4 text-crm-gray shrink-0" />
-            <select
-              value={lang}
-              onChange={(e) => setLang(e.target.value)}
-              className="w-full sm:w-auto min-w-[140px] px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
-            >
-              <option value="en">English</option>
-              <option value="sw">Kiswahili</option>
-              <option value="fr">French</option>
-              <option value="es">Spanish</option>
-              <option value="pt">Portuguese</option>
-              <option value="ar">Arabic</option>
-            </select>
-          </div>
+          <LanguageSelector className="w-full sm:w-auto" />
         </div>
 
         <div className="scroll-tabs mb-6 sm:mb-8 flex-nowrap sm:flex-wrap">
@@ -141,7 +132,7 @@ export default function DiscipleshipLibrary() {
               !activeSection ? 'bg-crm-purple text-crm-black' : 'bg-white/5 text-crm-gray-light hover:bg-white/10'
             }`}
           >
-            All
+            {t('library.all')}
           </button>
           {sections.map((sec) => {
             const Icon = SECTION_ICONS[sec.id] || BookOpen
@@ -170,7 +161,7 @@ export default function DiscipleshipLibrary() {
               const Icon = TYPE_ICONS[m.material_type] || BookOpen
               return (
                 <motion.div key={m.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
-                  <Link to={`/discipleship/${m.id}?lang=${lang}`} className="block group">
+                  <Link to={`/discipleship/${m.id}?lang=${language}`} className="block group">
                     <GlassCard className="overflow-hidden h-full hover:border-crm-purple/30 transition-all">
                       <div className="relative aspect-video bg-crm-dark">
                         {m.thumbnail_url ? (

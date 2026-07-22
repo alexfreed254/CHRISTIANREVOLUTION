@@ -7,8 +7,11 @@ import FilterBar from '../components/media/FilterBar'
 import { usePlayer } from '../context/PlayerContext'
 import toast from 'react-hot-toast'
 import Footer from '../components/common/Footer'
+import { useLanguage } from '../context/LanguageContext'
+import LanguageSelector from '../components/common/LanguageSelector'
 
 export default function MediaLibrary() {
+  const { language, t, aiTranslation } = useLanguage()
   const [media, setMedia] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -27,7 +30,7 @@ export default function MediaLibrary() {
 
   useEffect(() => {
     fetchMedia()
-  }, [filters, pagination.page])
+  }, [filters, pagination.page, searchQuery, language])
 
   const fetchMedia = async () => {
     setLoading(true)
@@ -36,7 +39,8 @@ export default function MediaLibrary() {
         ...filters,
         page: pagination.page,
         per_page: pagination.per_page,
-        q: searchQuery
+        q: searchQuery,
+        lang: language !== 'en' ? language : undefined,
       }
       const res = await axios.get('/api/media/library', { params })
       setMedia(res.data.media || [])
@@ -59,9 +63,9 @@ export default function MediaLibrary() {
     fetchMedia()
   }
 
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters)
-    setPagination(prev => ({ ...prev, page: 1 }))
+  const handleFilterChange = (key, value) => {
+    setFilters((prev) => ({ ...prev, [key]: value }))
+    setPagination((prev) => ({ ...prev, page: 1 }))
   }
 
   const handlePageChange = (newPage) => {
@@ -78,10 +82,18 @@ export default function MediaLibrary() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-12"
         >
-          <h1 className="text-4xl font-bold text-crm-white mb-4">Media Library</h1>
-          <p className="text-crm-gray-light">
-            Explore thousands of sermons, teachings, and resources from the CRM global network
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+            <div>
+              <h1 className="text-4xl font-bold text-crm-white mb-4">{t('media.library')}</h1>
+              <p className="text-crm-gray-light">
+                Explore thousands of sermons, teachings, and resources from the CRM global network
+              </p>
+            </div>
+            <LanguageSelector compact className="shrink-0" />
+          </div>
+          {aiTranslation && language !== 'en' && (
+            <p className="text-xs text-crm-purple mb-2">{t('common.aiTranslated')}</p>
+          )}
         </motion.div>
 
         {/* Search Bar */}
@@ -116,7 +128,7 @@ export default function MediaLibrary() {
           {loading && (
             <div className="flex items-center gap-2 text-crm-purple">
               <div className="w-4 h-4 border-2 border-crm-purple/30 border-t-crm-purple rounded-full animate-spin" />
-              <span className="text-sm">Loading...</span>
+              <span className="text-sm">{t('common.loading')}</span>
             </div>
           )}
         </div>

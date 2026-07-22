@@ -694,13 +694,26 @@ def get_media_library():
         total = len(media)
         start = (page - 1) * per_page
         end = start + per_page
+        page_items = media[start:end]
+
+        target_lang = (request.args.get('lang') or request.args.get('translate') or '').lower()
+        if target_lang and target_lang != 'all':
+            try:
+                from translation_service import apply_content_language, translation_enabled
+                page_items = [
+                    apply_content_language(m, target_lang, text_fields=['title', 'description', 'speaker', 'bible_reference'])
+                    for m in page_items
+                ]
+            except Exception as e:
+                print(f"media library translation: {e}")
 
         return jsonify({
-            'media': media[start:end],
+            'media': page_items,
             'total': total,
             'page': page,
             'per_page': per_page,
-            'total_pages': (total + per_page - 1) // per_page
+            'total_pages': (total + per_page - 1) // per_page,
+            'language': target_lang or None,
         }), 200
     except Exception as e:
         return jsonify({'media': MEDIA_STORE[:12], 'total': len(MEDIA_STORE), 'page': 1, 'per_page': 12, 'total_pages': 1}), 200
@@ -730,6 +743,15 @@ def get_media_item(media_id):
         return jsonify({'error': 'Not found'}), 404
     # Increment view count realistically when opened
     media['view_count'] = (media.get('view_count') or 0) + 1
+    target_lang = (request.args.get('lang') or request.args.get('translate') or '').lower()
+    if target_lang:
+        try:
+            from translation_service import apply_content_language
+            media = apply_content_language(
+                media, target_lang, text_fields=['title', 'description', 'speaker', 'bible_reference']
+            )
+        except Exception as e:
+            print(f"media item translation: {e}")
     counts = reaction_store.get_counts('media', media_id)
     return jsonify({
         'media': media,
@@ -1060,6 +1082,17 @@ register_spiritual_routes(
     db_execute=db_execute,
     try_supabase=try_supabase,
     SPIRITUAL_MATERIALS_STORE=SPIRITUAL_MATERIALS_STORE,
+)
+
+try:
+    from .translation_routes import register_translation_routes
+except ImportError:
+    from translation_routes import register_translation_routes
+
+register_translation_routes(
+    app,
+    db_ready=db_ready,
+    db_execute=db_execute,
 )
 
 # ============================================================================

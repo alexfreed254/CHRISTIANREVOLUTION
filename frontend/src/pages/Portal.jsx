@@ -3,15 +3,18 @@ import { Navigate, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
   User, TrendingUp, Calendar, BookOpen, Heart, DollarSign,
-  Award, Target, Flame, ChevronRight, LogOut, Shield, Sun, Headphones, Video, Globe, Bookmark
+  Award, Target, Flame, ChevronRight, LogOut, Shield, Sun, Headphones, Video, Bookmark
 } from 'lucide-react'
 import axios from 'axios'
 import { useAuth } from '../context/AuthContext'
+import { useLanguage } from '../context/LanguageContext'
+import LanguageSelector from '../components/common/LanguageSelector'
 import GlassCard from '../components/common/GlassCard'
 import Footer from '../components/common/Footer'
 
 export default function Portal() {
   const { user, token, loading, logout } = useAuth()
+  const { language, t } = useLanguage()
   const navigate = useNavigate()
   const [stats, setStats] = useState({
     attendance: 0,
@@ -21,7 +24,6 @@ export default function Portal() {
     engagementScore: 0
   })
   const [todayMaterial, setTodayMaterial] = useState(null)
-  const [materialLang, setMaterialLang] = useState(user?.preferred_language || 'en')
 
   useEffect(() => {
     if (!user || !token) return
@@ -31,7 +33,7 @@ export default function Portal() {
         const headers = { Authorization: `Bearer ${token}` }
         const [statsRes, todayRes] = await Promise.all([
           axios.get('/api/me/stats', { headers }),
-          axios.get('/api/discipleship/today', { headers, params: { lang: materialLang } }),
+          axios.get('/api/discipleship/today', { headers, params: { lang: language } }),
         ])
         setStats({
           attendance: statsRes.data.attendance || 0,
@@ -55,7 +57,7 @@ export default function Portal() {
     load()
     const interval = setInterval(load, 20000)
     return () => clearInterval(interval)
-  }, [user, token, materialLang])
+  }, [user, token, language])
 
   const handleLogout = () => {
     logout()
@@ -90,7 +92,7 @@ export default function Portal() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
             <div className="min-w-0">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-crm-white mb-2 break-words">
-                Welcome back, {user.full_name?.split(' ')[0]}!
+                {t('portal.welcome')}, {user.full_name?.split(' ')[0]}!
               </h1>
               <p className="text-sm sm:text-base text-crm-gray-light">Continue your discipleship journey</p>
             </div>
@@ -144,24 +146,10 @@ export default function Portal() {
                   </p>
                   <h2 className="text-lg sm:text-2xl font-bold text-crm-white flex items-center gap-2">
                     <Sun className="w-5 h-5 sm:w-6 sm:h-6 text-crm-purple shrink-0" />
-                    <span>Today&apos;s Daily Christ Bite</span>
+                    <span>{t('portal.todayBite')}</span>
                   </h2>
                 </div>
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <Globe className="w-4 h-4 text-crm-gray shrink-0" />
-                  <select
-                    value={materialLang}
-                    onChange={(e) => setMaterialLang(e.target.value)}
-                    className="w-full sm:w-auto min-w-[120px] px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm"
-                  >
-                    <option value="en">English</option>
-                    <option value="sw">Kiswahili</option>
-                    <option value="fr">French</option>
-                    <option value="es">Spanish</option>
-                    <option value="pt">Portuguese</option>
-                    <option value="ar">Arabic</option>
-                  </select>
-                </div>
+                <LanguageSelector compact className="w-full sm:w-auto" />
               </div>
 
               <h3 className="text-xl font-semibold text-crm-white mb-2">{todayMaterial.title}</h3>
@@ -169,25 +157,25 @@ export default function Portal() {
 
               <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
                 <Link
-                  to={`/discipleship/${todayMaterial.id}?lang=${materialLang}`}
+                  to={`/discipleship/${todayMaterial.id}?lang=${language}`}
                   className="shield-button text-center col-span-2 sm:col-span-1 flex items-center justify-center gap-2 min-h-[44px]"
                 >
-                  <BookOpen className="w-4 h-4" /> Read
+                  <BookOpen className="w-4 h-4" /> {t('library.read')}
                 </Link>
                 {todayMaterial.audio_url && (
                   <Link
-                    to={`/discipleship/${todayMaterial.id}?lang=${materialLang}`}
+                    to={`/discipleship/${todayMaterial.id}?lang=${language}`}
                     className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5 min-h-[44px]"
                   >
-                    <Headphones className="w-4 h-4" /> Listen
+                    <Headphones className="w-4 h-4" /> {t('library.listen')}
                   </Link>
                 )}
                 {todayMaterial.video_url && (
                   <Link
-                    to={`/discipleship/${todayMaterial.id}?lang=${materialLang}`}
+                    to={`/discipleship/${todayMaterial.id}?lang=${language}`}
                     className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5 min-h-[44px]"
                   >
-                    <Video className="w-4 h-4" /> Watch
+                    <Video className="w-4 h-4" /> {t('library.watch')}
                   </Link>
                 )}
                 <Link
