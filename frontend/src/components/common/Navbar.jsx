@@ -42,7 +42,7 @@ export default function Navbar() {
     { path: '/discipleship', label: 'Discipleship', icon: BookOpen },
     { path: '/media', label: 'Media', icon: Library },
     { path: '/prayer', label: 'Prayer', icon: Heart },
-    { path: '/portal', label: 'Discipleship', icon: GraduationCap, auth: true },
+    { path: '/portal', label: 'Portal', icon: GraduationCap, auth: true },
     { path: '/support', label: 'Support', icon: Heart },
   ]
 
@@ -80,17 +80,17 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16 lg:h-20 gap-3">
+          <div className="flex items-center h-16 lg:h-20 gap-2 sm:gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2.5 -ml-1 rounded-xl hover:bg-white/10 transition-all text-crm-white"
+              className="xl:hidden p-2.5 -ml-1 rounded-xl hover:bg-white/10 transition-all text-crm-white shrink-0"
               aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
 
-            <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 flex-1 lg:flex-none">
+            <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink-0 max-w-[45%] sm:max-w-none">
               <BrandLogo size="nav" priority className="group-hover:scale-105 transition-transform shrink-0" />
               <div className="hidden sm:block min-w-0">
                 <h1 className="text-sm lg:text-base font-black tracking-wider uppercase leading-tight truncate">
@@ -103,7 +103,7 @@ export default function Navbar() {
               </div>
             </Link>
 
-            <div className="hidden lg:flex items-center gap-0.5 flex-1 justify-center">
+            <div className="hidden xl:flex items-center gap-0.5 flex-1 min-w-0 justify-center overflow-x-auto scrollbar-hide px-1">
               {navLinks.map((link) => (
                 <NavLinkItem key={link.path} link={link} />
               ))}
@@ -140,28 +140,42 @@ export default function Navbar() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto relative z-20">
               {user ? (
                 <>
                   {['admin', 'super_admin'].includes(user.role) && (
-                    <Link to="/admin" className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-crm-purple text-crm-black font-semibold text-sm hover:opacity-90">
+                    <Link to="/admin" className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-crm-purple text-crm-black font-semibold text-sm hover:opacity-90 shrink-0">
                       <Shield className="w-4 h-4" /> Admin
                     </Link>
                   )}
-                  <Link to="/portal" className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-crm-purple/10 border border-crm-purple/20 text-crm-purple text-sm">
-                    <User className="w-4 h-4" />
-                    <span className="font-medium max-w-[80px] truncate">{user.full_name?.split(' ')[0]}</span>
+                  <Link to="/portal" className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-crm-purple/10 border border-crm-purple/20 text-crm-purple text-sm shrink-0">
+                    <User className="w-4 h-4 shrink-0" />
+                    <span className="font-medium max-w-[72px] truncate">{user.full_name?.split(' ')[0]}</span>
                   </Link>
-                  <button type="button" onClick={logout} className="p-2 rounded-lg hover:bg-white/5 text-crm-gray-light hover:text-crm-white" title="Logout">
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="flex items-center justify-center p-2.5 rounded-lg border border-white/15 bg-white/10 text-crm-white hover:bg-white/15 hover:text-crm-white shrink-0"
+                    title="Sign out"
+                    aria-label="Sign out"
+                  >
                     <LogOut className="w-5 h-5" />
                   </button>
                 </>
               ) : (
                 <>
-                  <Link to="/login" className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-crm-gray-light hover:text-crm-white hover:bg-white/5">
-                    <LogIn className="w-4 h-4" /> Sign In
+                  <Link
+                    to="/login"
+                    className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-crm-gray-light hover:text-crm-white hover:bg-white/10 shrink-0"
+                  >
+                    <LogIn className="w-4 h-4 shrink-0" /> Sign In
                   </Link>
-                  <Link to="/register" className="shield-button text-xs px-3 py-2">Join</Link>
+                  <Link
+                    to="/register"
+                    className="inline-flex items-center justify-center px-3 sm:px-4 py-2 rounded-lg bg-crm-purple text-crm-black font-bold text-xs sm:text-sm uppercase tracking-wide hover:opacity-90 shrink-0 whitespace-nowrap shadow-lg shadow-crm-purple/20"
+                  >
+                    Join Now
+                  </Link>
                 </>
               )}
             </div>
@@ -171,7 +185,7 @@ export default function Navbar() {
 
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40 lg:hidden">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40 xl:hidden">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} aria-hidden />
             <motion.div
               initial={{ x: '-100%' }}
@@ -217,13 +231,22 @@ export default function Navbar() {
                     <Link to="/portal" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-crm-purple/10 text-crm-purple">
                       <User className="w-5 h-5" /> My Dashboard
                     </Link>
+                    <button
+                      type="button"
+                      onClick={logout}
+                      className="flex items-center justify-center gap-2 py-3 rounded-xl border border-white/15 bg-white/10 text-crm-white hover:bg-white/15"
+                    >
+                      <LogOut className="w-5 h-5" /> Sign Out
+                    </button>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2">
                     <Link to="/login" className="flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 text-crm-white">
-                      Sign In
+                      <LogIn className="w-5 h-5" /> Sign In
                     </Link>
-                    <Link to="/register" className="shield-button text-center py-3">Join the Movement</Link>
+                    <Link to="/register" className="flex items-center justify-center py-3 rounded-lg bg-crm-purple text-crm-black font-bold uppercase tracking-wide">
+                      Join Now
+                    </Link>
                   </div>
                 )}
               </div>
