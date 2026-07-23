@@ -55,7 +55,7 @@
     content: none;
   }
   .page-shell {
-    @apply min-h-screen pt-16 sm:pt-20 pb-12 sm:pb-16;
+    @apply min-h-screen pb-12 sm:pb-16;
   }
   .page-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full;

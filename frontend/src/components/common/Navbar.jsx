@@ -83,67 +83,33 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16 lg:h-20 gap-2 sm:gap-3 min-w-0">
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="xl:hidden p-2.5 -ml-1 rounded-xl hover:bg-white/10 transition-all text-crm-white shrink-0"
-              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+          {/* Top row: logo + account actions */}
+          <div className="flex items-center justify-between h-16 lg:h-[4.5rem] gap-2 sm:gap-3 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="xl:hidden p-2.5 -ml-1 rounded-xl hover:bg-white/10 transition-all text-crm-white shrink-0"
+                aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
+              >
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
 
-            <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink-0 max-w-[45%] sm:max-w-none">
-              <BrandLogo size="nav" priority className="group-hover:scale-105 transition-transform shrink-0" />
-              <div className="hidden sm:block min-w-0">
-                <h1 className="text-sm lg:text-base font-black tracking-wider uppercase leading-tight truncate">
-                  <span className="text-crm-white">Christ</span>
-                  <span className="text-crm-purple ml-1">Revolution</span>
-                </h1>
-                <p className="text-[9px] lg:text-[10px] text-crm-gray tracking-[0.25em] uppercase truncate">
-                  Global Digital Ministry
-                </p>
-              </div>
-            </Link>
-
-            <div className="hidden xl:flex items-center gap-0.5 flex-1 min-w-0 justify-center overflow-x-auto scrollbar-hide px-1">
-              {navLinks.map((link) => (
-                <NavLinkItem key={link.path} link={link} />
-              ))}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setMinistriesOpen(!ministriesOpen)}
-                  className="px-3 py-2 rounded-lg text-sm font-medium text-crm-gray-light hover:text-crm-white hover:bg-white/5 flex items-center gap-1"
-                >
-                  <BookOpen className="w-4 h-4" /> {t('nav.ministries')}
-                  <ChevronDown className={`w-3 h-3 transition-transform ${ministriesOpen ? 'rotate-180' : ''}`} />
-                </button>
-                <AnimatePresence>
-                  {ministriesOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
-                      className="absolute top-full left-0 mt-2 w-64 max-h-80 overflow-y-auto rounded-2xl bg-crm-dark border border-white/10 shadow-2xl p-2 z-50"
-                    >
-                      {MINISTRIES.map((name) => (
-                        <Link
-                          key={name}
-                          to="/about#ministries"
-                          onClick={() => setMinistriesOpen(false)}
-                          className="block px-3 py-2 rounded-lg text-sm text-crm-gray-light hover:bg-white/5 hover:text-crm-white"
-                        >
-                          {name}
-                        </Link>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0">
+                <BrandLogo size="nav" priority className="group-hover:scale-105 transition-transform shrink-0" />
+                <div className="hidden sm:block min-w-0">
+                  <h1 className="text-sm lg:text-base font-black tracking-wider uppercase leading-tight truncate">
+                    <span className="text-crm-white">Christ</span>
+                    <span className="text-crm-purple ml-1">Revolution</span>
+                  </h1>
+                  <p className="text-[9px] lg:text-[10px] text-crm-gray tracking-[0.25em] uppercase truncate">
+                    Global Digital Ministry
+                  </p>
+                </div>
+              </Link>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto relative z-20">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 relative z-20">
               <LanguageSelector compact className="hidden sm:block" />
               {user ? (
                 <>
@@ -184,8 +150,51 @@ export default function Navbar() {
               )}
             </div>
           </div>
+
+          {/* Bottom row: main navigation below logo (desktop) */}
+          <div className="hidden xl:block border-t border-white/10">
+            <div className="flex items-center gap-0.5 py-2.5 flex-wrap">
+              {navLinks.map((link) => (
+                <NavLinkItem key={link.path} link={link} />
+              ))}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMinistriesOpen(!ministriesOpen)}
+                  className="px-3 py-2 rounded-lg text-sm font-medium text-crm-gray-light hover:text-crm-white hover:bg-white/5 flex items-center gap-1"
+                >
+                  <BookOpen className="w-4 h-4" /> {t('nav.ministries')}
+                  <ChevronDown className={`w-3 h-3 transition-transform ${ministriesOpen ? 'rotate-180' : ''}`} />
+                </button>
+                <AnimatePresence>
+                  {ministriesOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      className="absolute top-full left-0 mt-2 w-64 max-h-80 overflow-y-auto rounded-2xl bg-crm-dark border border-white/10 shadow-2xl p-2 z-50"
+                    >
+                      {MINISTRIES.map((name) => (
+                        <Link
+                          key={name}
+                          to="/about#ministries"
+                          onClick={() => setMinistriesOpen(false)}
+                          className="block px-3 py-2 rounded-lg text-sm text-crm-gray-light hover:bg-white/5 hover:text-crm-white"
+                        >
+                          {name}
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
         </div>
       </motion.nav>
+
+      {/* Reserve space for fixed header (taller on desktop with nav row below logo) */}
+      <div className="h-16 sm:h-20 xl:h-[7.25rem] shrink-0" aria-hidden="true" />
 
       <AnimatePresence>
         {isMobileMenuOpen && (

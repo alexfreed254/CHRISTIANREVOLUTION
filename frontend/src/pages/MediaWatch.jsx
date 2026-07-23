@@ -59,7 +59,7 @@ export default function MediaWatch() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-28 px-4 max-w-6xl mx-auto">
+      <div className="min-h-screen px-4 max-w-6xl mx-auto flex items-center">
         <div className="aspect-video rounded-2xl bg-white/5 animate-pulse mb-6" />
         <div className="h-8 bg-white/5 rounded w-2/3 animate-pulse mb-4" />
         <div className="h-4 bg-white/5 rounded w-1/3 animate-pulse" />
@@ -72,7 +72,7 @@ export default function MediaWatch() {
   const videoUrl = media.video_url || media.url || media.stream_url
 
   return (
-    <div className={`min-h-screen pt-20 pb-12 ${theater ? 'bg-black' : ''}`}>
+    <div className={`min-h-screen pb-12 ${theater ? 'bg-black' : ''}`}>
       <div className={`mx-auto px-4 sm:px-6 lg:px-8 ${theater ? 'max-w-[1600px]' : 'max-w-6xl'}`}>
         {!theater && (
           <Link to="/media" className="inline-flex items-center gap-2 text-crm-gray-light hover:text-crm-white mb-4 transition-colors">

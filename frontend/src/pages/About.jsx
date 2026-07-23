@@ -26,7 +26,7 @@ const JOURNEY = [
 
 export default function About() {
   return (
-    <div className="min-h-screen pt-20 pb-12">
+    <div className="min-h-screen pb-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
           <BrandLogo size="md" className="mx-auto mb-6" />

@@ -279,7 +279,7 @@ export default function Support() {
 
   if (successReceipt) {
     return (
-      <div className="min-h-screen pt-20 pb-12">
+      <div className="min-h-screen pb-12">
         <div className="max-w-lg mx-auto px-4 text-center">
           <GlassCard className="p-10">
             <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
@@ -306,7 +306,7 @@ export default function Support() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-12">
+    <div className="min-h-screen pb-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

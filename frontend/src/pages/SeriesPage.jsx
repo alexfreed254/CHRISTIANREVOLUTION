@@ -35,7 +35,7 @@ export default function SeriesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-crm-purple/30 border-t-crm-purple rounded-full animate-spin" />
       </div>
     )
@@ -43,7 +43,7 @@ export default function SeriesPage() {
 
   if (!series) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-crm-white mb-2">Series Not Found</h2>
           <p className="text-crm-gray mb-6">This series does not exist.</p>
@@ -56,7 +56,7 @@ export default function SeriesPage() {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-12">
+    <div className="min-h-screen pb-12">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-b from-crm-purple/10 to-transparent py-16 mb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -293,7 +293,7 @@ export default function AdminDashboard() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen pt-28 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-crm-purple/30 border-t-crm-purple rounded-full animate-spin" />
       </div>
     )
@@ -302,7 +302,7 @@ export default function AdminDashboard() {
   if (!user) return <Navigate to="/login" replace />
   if (!isAdmin) {
     return (
-      <div className="min-h-screen pt-28 px-4 flex flex-col items-center justify-center text-center">
+      <div className="min-h-screen px-4 flex flex-col items-center justify-center text-center">
         <Shield className="w-12 h-12 text-crm-purple mb-4" />
         <h1 className="text-2xl font-bold text-crm-white mb-2">Admin access required</h1>
         <p className="text-crm-gray mb-6 max-w-md">
