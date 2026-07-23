@@ -9,9 +9,13 @@ The Christ Revolution Movement (CRM) is a global discipleship platform that brin
 - **Live Streaming** - Watch services and events in real-time with multi-language support
 - **Media Library** - Access thousands of sermons, teachings, and resources
 - **Prayer Wall** - Join the global prayer movement
+- **Discipleship Library** - Courses, devotionals, daily spiritual materials, and training resources
 - **Discipleship Tracking** - Track your spiritual growth journey
-- **Digital Giving** - Support the mission through secure online giving
+- **Digital Giving** - Support the mission via PayPal, M-Pesa, and Stripe
+- **AI Translation** - Content and UI in 40+ languages including Kiswahili, Kikuyu, Luo, and more
 - **Community Engagement** - Connect with believers worldwide
+
+> **Full platform blueprint:** See [PLATFORM_FEATURES.md](./PLATFORM_FEATURES.md) for the complete feature structure — public website, member portal, Super Admin dashboard, and advanced Digital Kingdom Ecosystem roadmap.
 
 ## 🚀 Tech Stack
 
@@ -68,6 +72,8 @@ CHRIST-REVOLUTION-MOVEMENT1/
 │   └── postcss.config.js      # PostCSS configuration
 ├── database.sql               # Database schema
 ├── database_payments.sql      # Migration: PayPal/M-Pesa (existing DBs)
+├── database_spiritual_materials.sql  # Discipleship library tables
+├── PLATFORM_FEATURES.md       # Full platform feature blueprint & roadmap
 ├── .env.example               # Environment variables template
 ├── .env.payment.example       # Optional PayPal / M-Pesa env vars
 ├── Procfile                   # Render deployment config
@@ -176,6 +182,8 @@ Donors use **Support** (`/give`): PayPal Checkout for international/cards, M-Pes
 
 ## 🔑 Key Features
 
+> See [PLATFORM_FEATURES.md](./PLATFORM_FEATURES.md) for the complete 36-module architecture, Super Admin sidebar structure, and advanced Digital Kingdom Ecosystem features.
+
 ### 1. Live Streaming
 - Real-time video streaming with multi-language support
 - Live chat with Socket.IO
@@ -200,7 +208,13 @@ Donors use **Support** (`/give`): PayPal Checkout for international/cards, M-Pes
 - Community prayer counting
 - Real-time updates
 
-### 5. Secure Authentication
+### 5. Discipleship Library & Daily Materials
+- Super Admin-managed spiritual materials (courses, devotionals, PDFs, video, audio)
+- Daily Christ Bites and scheduled publishing
+- Member saves, completion tracking, and library search
+- AI translation to Kenya's languages
+
+### 6. Secure Authentication
 - JWT-based authentication
 - Password hashing with SHA-256
 - Session management
