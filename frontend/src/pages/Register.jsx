@@ -61,7 +61,7 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-20">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-crm-black via-crm-dark to-crm-black" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-purple-50/50 to-slate-50" />
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-crm-purple/30 rounded-full blur-[120px]" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-crm-purple-light/20 rounded-full blur-[120px]" />
@@ -101,7 +101,7 @@ export default function Register() {
                       value={formData.full_name}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
                       placeholder="John Doe"
                     />
                   </div>
@@ -115,7 +115,7 @@ export default function Register() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
                       placeholder="john@example.com"
                     />
                   </div>
@@ -128,7 +128,7 @@ export default function Register() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
                       placeholder="+1 (555) 123-4567"
                     />
                   </div>
@@ -142,7 +142,7 @@ export default function Register() {
                       value={formData.username}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
                       placeholder="johndoe"
                     />
                   </div>
@@ -165,7 +165,7 @@ export default function Register() {
                       value={formData.continent}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
                     >
                       <option value="">Select Continent</option>
                       {CONTINENTS.map(c => (
@@ -183,7 +183,7 @@ export default function Register() {
                       value={formData.country}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
                       placeholder="Kenya"
                     />
                   </div>
@@ -197,7 +197,7 @@ export default function Register() {
                       value={formData.city}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
                       placeholder="Nairobi"
                     />
                   </div>
@@ -210,7 +210,7 @@ export default function Register() {
                       name="village"
                       value={formData.village}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
                       placeholder="Kiambu"
                     />
                   </div>
@@ -235,7 +235,7 @@ export default function Register() {
                       onChange={handleChange}
                       required
                       minLength={6}
-                      className="w-full px-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
                       placeholder="••••••••"
                     />
                   </div>
@@ -250,7 +250,7 @@ export default function Register() {
                       onChange={handleChange}
                       required
                       minLength={6}
-                      className="w-full px-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
                       placeholder="••••••••"
                     />
                   </div>
@@ -262,7 +262,7 @@ export default function Register() {
                 <input
                   type="checkbox"
                   required
-                  className="w-4 h-4 mt-1 rounded border-white/10 bg-crm-black/50 text-crm-purple focus:ring-crm-purple"
+                  className="w-4 h-4 mt-1 rounded border-slate-200 bg-slate-50 text-crm-purple focus:ring-crm-purple"
                 />
                 <label className="ml-2 text-sm text-crm-gray">
                   I agree to the{' '}
@@ -284,7 +284,7 @@ export default function Register() {
               >
                 {loading ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-crm-black/30 border-t-crm-black rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-crm-purple/30 border-t-crm-purple rounded-full animate-spin" />
                     Creating Account...
                   </>
                 ) : (
@@ -299,7 +299,7 @@ export default function Register() {
             {/* Login Link */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/10" />
+                <div className="w-full border-t border-slate-200" />
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-crm-dark text-crm-gray">Already have an account?</span>
@@ -308,7 +308,7 @@ export default function Register() {
 
             <Link
               to="/login"
-              className="block w-full text-center py-3 rounded-xl border border-white/20 text-crm-white hover:bg-white/5 transition-all font-medium"
+              className="block w-full text-center py-3 rounded-xl border border-slate-200 text-crm-white hover:bg-slate-100 transition-all font-medium"
             >
               Sign In
             </Link>

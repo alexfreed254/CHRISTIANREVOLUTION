@@ -60,9 +60,9 @@ export default function MediaWatch() {
   if (loading) {
     return (
       <div className="min-h-screen px-4 max-w-6xl mx-auto flex items-center">
-        <div className="aspect-video rounded-2xl bg-white/5 animate-pulse mb-6" />
-        <div className="h-8 bg-white/5 rounded w-2/3 animate-pulse mb-4" />
-        <div className="h-4 bg-white/5 rounded w-1/3 animate-pulse" />
+        <div className="aspect-video rounded-2xl bg-slate-100 animate-pulse mb-6" />
+        <div className="h-8 bg-slate-100 rounded w-2/3 animate-pulse mb-4" />
+        <div className="h-4 bg-slate-100 rounded w-1/3 animate-pulse" />
       </div>
     )
   }
@@ -85,7 +85,7 @@ export default function MediaWatch() {
         </div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-          <div className={`relative overflow-hidden bg-black mb-6 group ${theater ? 'rounded-none lg:rounded-2xl' : 'rounded-2xl border border-white/10 aspect-video'}`}>
+          <div className={`relative overflow-hidden bg-black mb-6 group ${theater ? 'rounded-none lg:rounded-2xl' : 'rounded-2xl border border-slate-200 aspect-video'}`}>
             {videoUrl ? (
               <ReactPlayer
                 url={videoUrl}
@@ -133,7 +133,7 @@ export default function MediaWatch() {
               <ReactionBar contentId={mediaId} contentType="media" initialCounts={reactions} />
 
               {media.description && (
-                <div className="mt-6 p-5 rounded-2xl bg-crm-dark/50 border border-white/10">
+                <div className="mt-6 p-5 rounded-2xl bg-slate-50 border border-slate-200">
                   <h2 className="text-sm font-semibold text-crm-gray uppercase tracking-wider mb-2">About</h2>
                   <p className="text-crm-gray-light leading-relaxed whitespace-pre-line">{media.description}</p>
                 </div>
@@ -160,7 +160,7 @@ export default function MediaWatch() {
               <button
                 type="button"
                 onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success('Link copied') }}
-                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-crm-white transition-all"
+                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-crm-white transition-all"
               >
                 <Share2 className="w-4 h-4" /> Share
               </button>

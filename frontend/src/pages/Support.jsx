@@ -364,7 +364,7 @@ export default function Support() {
                   </div>
                   <div className="flex items-center gap-2">
                     <p className="text-3xl font-bold text-green-400 tracking-widest">{manualMpesa.till_number}</p>
-                    <button type="button" onClick={copyTill} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-crm-gray">
+                    <button type="button" onClick={copyTill} className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-crm-gray">
                       <Copy className="w-4 h-4" />
                     </button>
                   </div>
@@ -381,7 +381,7 @@ export default function Support() {
                     value={mpesaCode}
                     onChange={(e) => setMpesaCode(e.target.value.toUpperCase())}
                     placeholder="M-Pesa Transaction Code"
-                    className="w-full px-4 py-3 rounded-xl bg-crm-black/50 border border-white/10 text-crm-white font-mono tracking-wider"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-crm-white font-mono tracking-wider"
                   />
                   <button type="button" onClick={submitMpesaCode} disabled={processing} className="w-full shield-button py-3">
                     Submit Donation
@@ -402,7 +402,7 @@ export default function Support() {
                           className={`p-4 rounded-xl border-2 transition-all text-left ${
                             formData.category === cat.id
                               ? 'border-crm-purple bg-crm-purple/10'
-                              : 'border-white/10 hover:border-white/20'
+                              : 'border-slate-200 hover:border-slate-200'
                           }`}
                         >
                           <cat.icon className={`w-6 h-6 mb-2 ${formData.category === cat.id ? 'text-crm-purple' : 'text-crm-gray'}`} />
@@ -421,7 +421,7 @@ export default function Support() {
                           name="currency"
                           value={formData.currency}
                           onChange={handleChange}
-                          className="text-sm bg-crm-black/50 border border-white/10 rounded-lg px-2 py-1 text-crm-white"
+                          className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-crm-white"
                         >
                           <option value="USD">USD</option>
                           <option value="EUR">EUR</option>
@@ -445,7 +445,7 @@ export default function Support() {
                         required
                         min="1"
                         step={currency === 'KES' ? '1' : '0.01'}
-                        className="w-full pl-14 pr-4 py-4 text-2xl font-bold bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-2 focus:ring-crm-purple/20 transition-all"
+                        className="w-full pl-14 pr-4 py-4 text-2xl font-bold bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-2 focus:ring-crm-purple/20 transition-all"
                         placeholder="0.00"
                       />
                     </div>
@@ -455,7 +455,7 @@ export default function Support() {
                           key={amount}
                           type="button"
                           onClick={() => setFormData({ ...formData, amount: String(amount) })}
-                          className="px-3 py-2 rounded-lg bg-white/5 text-crm-gray hover:bg-white/10 hover:text-crm-white transition-all text-sm font-medium"
+                          className="px-3 py-2 rounded-lg bg-slate-100 text-crm-gray hover:bg-slate-200 hover:text-crm-white transition-all text-sm font-medium"
                         >
                           {symbol}{amount.toLocaleString()}
                         </button>
@@ -472,7 +472,7 @@ export default function Support() {
                         className={`p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-3 ${
                           formData.payment_method === 'stripe'
                             ? 'border-[#635BFF] bg-[#635BFF]/10'
-                            : 'border-white/10 hover:border-white/20'
+                            : 'border-slate-200 hover:border-slate-200'
                         }`}
                       >
                         <StripeLogo className="h-8 w-auto" />
@@ -484,7 +484,7 @@ export default function Support() {
                         className={`p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-3 ${
                           formData.payment_method === 'paypal'
                             ? 'border-[#003087] bg-[#003087]/10'
-                            : 'border-white/10 hover:border-white/20'
+                            : 'border-slate-200 hover:border-slate-200'
                         }`}
                       >
                         <PayPalLogo className="h-8 w-auto" />
@@ -496,7 +496,7 @@ export default function Support() {
                         className={`p-5 rounded-xl border-2 transition-all flex flex-col items-center gap-3 ${
                           formData.payment_method === 'mpesa'
                             ? 'border-green-500 bg-green-500/10'
-                            : 'border-white/10 hover:border-white/20'
+                            : 'border-slate-200 hover:border-slate-200'
                         }`}
                       >
                         <MpesaLogo className="h-8 w-auto" />
@@ -523,7 +523,7 @@ export default function Support() {
                         value={formData.phone_number}
                         onChange={handleChange}
                         placeholder="+254 7XX XXX XXX"
-                        className="w-full px-4 py-3 rounded-xl bg-crm-black/50 border border-white/10 text-crm-white"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-crm-white"
                         required
                       />
                       <p className="text-xs text-crm-gray mt-1">
@@ -541,7 +541,7 @@ export default function Support() {
                         value={formData.donor_name}
                         onChange={handleChange}
                         placeholder="Your name"
-                        className="px-4 py-3 rounded-xl bg-crm-black/50 border border-white/10 text-crm-white"
+                        className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-crm-white"
                       />
                       <input
                         name="donor_email"
@@ -549,7 +549,7 @@ export default function Support() {
                         value={formData.donor_email}
                         onChange={handleChange}
                         placeholder="Email for receipt"
-                        className="px-4 py-3 rounded-xl bg-crm-black/50 border border-white/10 text-crm-white"
+                        className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-crm-white"
                       />
                     </div>
                   )}
@@ -562,7 +562,7 @@ export default function Support() {
                         name="is_recurring"
                         checked={formData.is_recurring}
                         onChange={handleChange}
-                        className="w-4 h-4 mt-1 rounded border-white/10 bg-crm-black/50 text-crm-purple focus:ring-crm-purple"
+                        className="w-4 h-4 mt-1 rounded border-slate-200 bg-slate-50 text-crm-purple focus:ring-crm-purple"
                       />
                       <label htmlFor="is_recurring" className="ml-2 text-sm text-crm-gray">
                         Make this a recurring monthly donation
@@ -578,7 +578,7 @@ export default function Support() {
                   >
                     {processing ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-crm-black/30 border-t-crm-black rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-crm-purple/30 border-t-crm-purple rounded-full animate-spin" />
                         Processing...
                       </>
                     ) : formData.payment_method === 'stripe' ? (

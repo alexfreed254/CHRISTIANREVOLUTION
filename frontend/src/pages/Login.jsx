@@ -36,7 +36,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-20">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-crm-black via-crm-dark to-crm-black" />
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-purple-50/50 to-slate-50" />
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-crm-purple/30 rounded-full blur-[120px]" />
         <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-crm-purple-light/20 rounded-full blur-[120px]" />
@@ -75,7 +75,7 @@ export default function Login() {
                     value={formData.username}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
                     placeholder="Enter your username"
                   />
                 </div>
@@ -97,7 +97,7 @@ export default function Login() {
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
                     placeholder="Enter your password"
                   />
                 </div>
@@ -106,7 +106,7 @@ export default function Login() {
               {/* Remember & Forgot */}
               <div className="flex items-center justify-between text-sm">
                 <label className="flex items-center">
-                  <input type="checkbox" className="w-4 h-4 rounded border-white/10 bg-crm-black/50 text-crm-purple focus:ring-crm-purple" />
+                  <input type="checkbox" className="w-4 h-4 rounded border-slate-200 bg-slate-50 text-crm-purple focus:ring-crm-purple" />
                   <span className="ml-2 text-crm-gray">Remember me</span>
                 </label>
                 <Link to="/forgot-password" className="text-crm-purple hover:text-crm-purple-light transition-colors">
@@ -122,7 +122,7 @@ export default function Login() {
               >
                 {loading ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-crm-black/30 border-t-crm-black rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-crm-purple/30 border-t-crm-purple rounded-full animate-spin" />
                     Signing in...
                   </>
                 ) : (
@@ -137,7 +137,7 @@ export default function Login() {
             {/* Divider */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/10" />
+                <div className="w-full border-t border-slate-200" />
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-crm-dark text-crm-gray">New to CRM?</span>
@@ -147,7 +147,7 @@ export default function Login() {
             {/* Register Link */}
             <Link
               to="/register"
-              className="block w-full text-center py-3 rounded-xl border border-white/20 text-crm-white hover:bg-white/5 transition-all font-medium"
+              className="block w-full text-center py-3 rounded-xl border border-slate-200 text-crm-white hover:bg-slate-100 transition-all font-medium"
             >
               Create an Account
             </Link>

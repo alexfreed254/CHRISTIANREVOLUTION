@@ -141,7 +141,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
     const colors = {
       published: 'bg-green-500/20 text-green-300',
       scheduled: 'bg-yellow-500/20 text-yellow-300',
-      draft: 'bg-white/10 text-crm-gray-light',
+      draft: 'bg-slate-200 text-crm-gray-light',
       archived: 'bg-red-500/20 text-red-300',
     }
     return (
@@ -158,7 +158,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
           <h2 className="text-xl font-bold text-crm-white">Daily Spiritual Materials</h2>
           <p className="text-sm text-crm-gray">Upload, schedule, translate, and publish official discipleship content.</p>
         </div>
-        <button type="button" onClick={load} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-crm-gray-light">
+        <button type="button" onClick={load} className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-crm-gray-light">
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
@@ -174,7 +174,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
             { label: 'Most Viewed', value: stats.most_viewed?.title || '—' },
             { label: 'Most Downloaded', value: stats.most_downloaded?.title || '—' },
           ].map((item) => (
-            <div key={item.label} className="p-4 rounded-2xl bg-crm-dark/60 border border-white/10">
+            <div key={item.label} className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
               <p className="text-xs text-crm-gray uppercase tracking-wider mb-1">{item.label}</p>
               <p className="text-sm font-semibold text-crm-white line-clamp-2 flex items-center gap-2">
                 {item.ok !== undefined && (item.ok ? <CheckCircle className="w-4 h-4 text-green-400 shrink-0" /> : <Clock className="w-4 h-4 text-yellow-400 shrink-0" />)}
@@ -185,7 +185,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
         </div>
       )}
 
-      <form onSubmit={createMaterial} className="p-4 sm:p-6 rounded-2xl bg-crm-dark/60 border border-white/10 space-y-4">
+      <form onSubmit={createMaterial} className="p-4 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
         <h3 className="text-lg font-semibold text-crm-white flex items-center gap-2">
           <Plus className="w-5 h-5" /> Create New Material
         </h3>
@@ -198,7 +198,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="Understanding the Power of Prayer"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+              className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
             />
           </div>
           <div>
@@ -206,7 +206,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
             <select
               value={form.material_type}
               onChange={(e) => setForm({ ...form, material_type: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+              className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
             >
               {MATERIAL_TYPES.map((t) => (
                 <option key={t.id} value={t.id}>{t.label}</option>
@@ -221,7 +221,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             rows={2}
-            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+            className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
           />
         </div>
 
@@ -232,29 +232,29 @@ export default function SpiritualMaterialsAdmin({ token }) {
             onChange={(e) => setForm({ ...form, content: e.target.value })}
             rows={6}
             placeholder="Write the devotional, study notes, or lesson content..."
-            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white font-mono text-sm"
+            className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white font-mono text-sm"
           />
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm text-crm-gray-light mb-1">File URL (PDF, EPUB…)</label>
-            <input value={form.file_url} onChange={(e) => setForm({ ...form, file_url: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm" />
+            <input value={form.file_url} onChange={(e) => setForm({ ...form, file_url: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white text-sm" />
           </div>
           <div>
             <label className="block text-sm text-crm-gray-light mb-1">Video URL</label>
-            <input value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm" />
+            <input value={form.video_url} onChange={(e) => setForm({ ...form, video_url: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white text-sm" />
           </div>
           <div>
             <label className="block text-sm text-crm-gray-light mb-1">Audio URL (MP3, M4A…)</label>
-            <input value={form.audio_url} onChange={(e) => setForm({ ...form, audio_url: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm" />
+            <input value={form.audio_url} onChange={(e) => setForm({ ...form, audio_url: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white text-sm" />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm text-crm-gray-light mb-1">Language</label>
-            <select value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white">
+            <select value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white">
               {platformLanguages.map((lang) => (
                 <option key={lang.code} value={lang.code}>{lang.label}{lang.native && lang.native !== lang.label ? ` (${lang.native})` : ''}</option>
               ))}
@@ -262,33 +262,33 @@ export default function SpiritualMaterialsAdmin({ token }) {
           </div>
           <div>
             <label className="block text-sm text-crm-gray-light mb-1">Category</label>
-            <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Prayer, Faith…" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white" />
+            <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Prayer, Faith…" className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white" />
           </div>
           <div>
             <label className="block text-sm text-crm-gray-light mb-1">Ministry</label>
-            <input value={form.ministry} onChange={(e) => setForm({ ...form, ministry: e.target.value })} placeholder="Daily Christ Bites" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white" />
+            <input value={form.ministry} onChange={(e) => setForm({ ...form, ministry: e.target.value })} placeholder="Daily Christ Bites" className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white" />
           </div>
           <div>
             <label className="block text-sm text-crm-gray-light mb-1">Speaker</label>
-            <input value={form.speaker} onChange={(e) => setForm({ ...form, speaker: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white" />
+            <input value={form.speaker} onChange={(e) => setForm({ ...form, speaker: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white" />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm text-crm-gray-light mb-1">Translation of (parent ID)</label>
-            <input value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })} placeholder="Leave blank for base material" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white font-mono text-sm" />
+            <input value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })} placeholder="Leave blank for base material" className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white font-mono text-sm" />
           </div>
           <div>
             <label className="block text-sm text-crm-gray-light mb-1">Bible Reference</label>
-            <input value={form.bible_reference} onChange={(e) => setForm({ ...form, bible_reference: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white" />
+            <input value={form.bible_reference} onChange={(e) => setForm({ ...form, bible_reference: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white" />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm text-crm-gray-light mb-1">Publication</label>
-            <select value={form.publish_mode} onChange={(e) => setForm({ ...form, publish_mode: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white">
+            <select value={form.publish_mode} onChange={(e) => setForm({ ...form, publish_mode: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white">
               <option value="immediate">Publish immediately</option>
               <option value="schedule">Schedule for later</option>
               <option value="draft">Save as draft</option>
@@ -297,12 +297,12 @@ export default function SpiritualMaterialsAdmin({ token }) {
           {form.publish_mode === 'schedule' && (
             <div>
               <label className="block text-sm text-crm-gray-light mb-1">Publish date & time</label>
-              <input type="datetime-local" value={form.publish_at} onChange={(e) => setForm({ ...form, publish_at: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white" />
+              <input type="datetime-local" value={form.publish_at} onChange={(e) => setForm({ ...form, publish_at: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white" />
             </div>
           )}
           <div>
             <label className="block text-sm text-crm-gray-light mb-1">Available until (optional)</label>
-            <input type="datetime-local" value={form.available_until} onChange={(e) => setForm({ ...form, available_until: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white" />
+            <input type="datetime-local" value={form.available_until} onChange={(e) => setForm({ ...form, available_until: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white" />
           </div>
         </div>
 
@@ -315,7 +315,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
             <input type="checkbox" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} className="rounded" />
             Featured
           </label>
-          <select value={form.visibility} onChange={(e) => setForm({ ...form, visibility: e.target.value })} className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm">
+          <select value={form.visibility} onChange={(e) => setForm({ ...form, visibility: e.target.value })} className="px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-crm-white text-sm">
             <option value="public">Public (guests)</option>
             <option value="members">Members only</option>
           </select>
@@ -334,7 +334,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
               type="button"
               onClick={() => setFilterStatus(s)}
               className={`shrink-0 px-3 py-1.5 rounded-lg text-xs uppercase ${
-                filterStatus === s ? 'bg-crm-purple text-crm-black' : 'bg-white/5 text-crm-gray-light'
+                filterStatus === s ? 'bg-crm-purple text-white' : 'bg-slate-100 text-crm-gray-light'
               }`}
             >
               {s || 'All'}
@@ -344,7 +344,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
 
         <div className="space-y-3">
           {materials.map((m) => (
-            <div key={m.id} className="p-4 rounded-2xl bg-crm-dark/60 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div key={m.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
                   {statusBadge(m.status)}

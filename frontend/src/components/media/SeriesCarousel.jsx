@@ -28,11 +28,11 @@ export default function SeriesCarousel({ series, title, subtitle }) {
         <div><h2 className="text-xl font-bold text-crm-white">{title}</h2>{subtitle && <p className="text-sm text-crm-gray mt-1">{subtitle}</p>}</div>
         <div className="flex items-center gap-2">
           <button onClick={() => scroll('left')} disabled={!canScrollLeft}
-            className={`p-2 rounded-full transition-all ${canScrollLeft ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white/5 text-crm-gray cursor-not-allowed'}`}>
+            className={`p-2 rounded-full transition-all ${canScrollLeft ? 'bg-slate-200 hover:bg-slate-300 text-crm-white' : 'bg-slate-100 text-crm-gray cursor-not-allowed'}`}>
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button onClick={() => scroll('right')} disabled={!canScrollRight}
-            className={`p-2 rounded-full transition-all ${canScrollRight ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-white/5 text-crm-gray cursor-not-allowed'}`}>
+            className={`p-2 rounded-full transition-all ${canScrollRight ? 'bg-slate-200 hover:bg-slate-300 text-crm-white' : 'bg-slate-100 text-crm-gray cursor-not-allowed'}`}>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -50,7 +50,7 @@ export default function SeriesCarousel({ series, title, subtitle }) {
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <div className="w-12 h-12 rounded-full bg-crm-purple/90 flex items-center justify-center">
-                    <Play className="w-5 h-5 text-crm-black ml-0.5" fill="currentColor" />
+                    <Play className="w-5 h-5 text-white ml-0.5" fill="currentColor" />
                   </div>
                 </div>
               </div>

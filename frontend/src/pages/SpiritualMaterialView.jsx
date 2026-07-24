@@ -155,7 +155,7 @@ export default function SpiritualMaterialView() {
                 {material.material_type_label || material.material_type}
               </span>
               {material.category && (
-                <span className="px-3 py-1 text-xs bg-white/5 text-crm-gray-light rounded-full">{material.category}</span>
+                <span className="px-3 py-1 text-xs bg-slate-100 text-crm-gray-light rounded-full">{material.category}</span>
               )}
               {material._ai_translated && aiTranslation && (
                 <span className="px-3 py-1 text-xs bg-crm-purple/10 text-crm-purple rounded-full">{t('common.aiTranslated')}</span>
@@ -180,7 +180,7 @@ export default function SpiritualMaterialView() {
                     type="button"
                     onClick={() => changeLang(code)}
                     className={`px-3 py-1 rounded-lg text-xs ${
-                      lang === code ? 'bg-crm-purple text-crm-black' : 'bg-white/5 text-crm-gray-light'
+                      lang === code ? 'bg-crm-purple text-white' : 'bg-slate-100 text-crm-gray-light'
                     }`}
                   >
                     {langLabel(code)}
@@ -190,18 +190,18 @@ export default function SpiritualMaterialView() {
             )}
 
             <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 mb-6 sm:mb-8">
-              <button type="button" onClick={handleSave} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm min-h-[44px] ${saved ? 'bg-crm-purple/20 text-crm-purple' : 'bg-white/5 text-crm-gray-light hover:bg-white/10'}`}>
+              <button type="button" onClick={handleSave} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm min-h-[44px] ${saved ? 'bg-crm-purple/20 text-crm-purple' : 'bg-slate-100 text-crm-gray-light hover:bg-slate-200'}`}>
                 <Bookmark className="w-4 h-4 shrink-0" /> <span className="truncate">{saved ? 'Saved' : t('library.save')}</span>
               </button>
-              <button type="button" onClick={handleComplete} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm min-h-[44px] ${completed ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-crm-gray-light hover:bg-white/10'}`}>
+              <button type="button" onClick={handleComplete} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm min-h-[44px] ${completed ? 'bg-green-500/20 text-green-400' : 'bg-slate-100 text-crm-gray-light hover:bg-slate-200'}`}>
                 <CheckCircle className="w-4 h-4 shrink-0" /> <span className="truncate">{completed ? 'Done' : t('library.complete')}</span>
               </button>
               {material.file_url && (
-                <button type="button" onClick={handleDownload} className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm bg-white/5 text-crm-gray-light hover:bg-white/10 min-h-[44px]">
+                <button type="button" onClick={handleDownload} className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm bg-slate-100 text-crm-gray-light hover:bg-slate-200 min-h-[44px]">
                   <Download className="w-4 h-4 shrink-0" /> {t('library.download')}
                 </button>
               )}
-              <button type="button" onClick={handleShare} className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm bg-white/5 text-crm-gray-light hover:bg-white/10 min-h-[44px]">
+              <button type="button" onClick={handleShare} className="col-span-2 sm:col-span-1 flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm bg-slate-100 text-crm-gray-light hover:bg-slate-200 min-h-[44px]">
                 <Share2 className="w-4 h-4 shrink-0" /> {t('library.share')}
               </button>
             </div>
@@ -213,7 +213,7 @@ export default function SpiritualMaterialView() {
             )}
 
             {material.content && (
-              <div className="prose prose-invert max-w-none mb-8">
+              <div className="prose prose max-w-none mb-8">
                 <div className="flex items-center gap-2 text-crm-purple mb-4">
                   <BookOpen className="w-5 h-5" />
                   <span className="font-semibold">{t('library.read')}</span>

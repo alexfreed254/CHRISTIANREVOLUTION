@@ -208,7 +208,7 @@ export default function LiveStreamPage() {
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-4 border-t border-white/10">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-4 border-t border-slate-200">
                 <div className="flex items-center gap-2 text-crm-gray">
                   <Users className="w-5 h-5 text-red-500 shrink-0" />
                   <span className="font-medium text-crm-white">{viewerCount.toLocaleString()}</span>
@@ -226,7 +226,7 @@ export default function LiveStreamPage() {
                   className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all min-h-[44px] ${
                     liked
                       ? 'bg-crm-live/20 text-crm-live'
-                      : 'bg-white/5 text-crm-gray hover:bg-white/10 hover:text-crm-white'
+                      : 'bg-slate-100 text-crm-gray hover:bg-slate-200 hover:text-crm-white'
                   }`}
                 >
                   <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
@@ -236,7 +236,7 @@ export default function LiveStreamPage() {
 
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-white/5 text-crm-gray hover:bg-white/10 hover:text-crm-white transition-all min-h-[44px]"
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg bg-slate-100 text-crm-gray hover:bg-slate-200 hover:text-crm-white transition-all min-h-[44px]"
                 >
                   <Share2 className="w-5 h-5" />
                   <span className="text-sm">Share</span>

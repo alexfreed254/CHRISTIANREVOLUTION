@@ -100,10 +100,10 @@ export default function DiscipleshipLibrary() {
                 <div className="flex flex-col sm:flex-row flex-wrap gap-2">
                   <Link to={`/discipleship/${today.id}?lang=${language}`} className="shield-button text-center w-full sm:w-auto">{t('library.read')}</Link>
                   {today.audio_url && (
-                    <a href={today.audio_url} target="_blank" rel="noreferrer" className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5">Listen</a>
+                    <a href={today.audio_url} target="_blank" rel="noreferrer" className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-crm-white hover:bg-slate-100">Listen</a>
                   )}
                   {today.video_url && (
-                    <Link to={`/discipleship/${today.id}?lang=${language}`} className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5">{t('library.watch')}</Link>
+                    <Link to={`/discipleship/${today.id}?lang=${language}`} className="w-full sm:w-auto text-center px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-crm-white hover:bg-slate-100">{t('library.watch')}</Link>
                   )}
                 </div>
               </div>
@@ -118,7 +118,7 @@ export default function DiscipleshipLibrary() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t('library.search')}
-              className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+              className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
             />
           </div>
           <LanguageSelector className="w-full sm:w-auto" />
@@ -129,7 +129,7 @@ export default function DiscipleshipLibrary() {
             type="button"
             onClick={() => setActiveSection('')}
             className={`shrink-0 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all ${
-              !activeSection ? 'bg-crm-purple text-crm-black' : 'bg-white/5 text-crm-gray-light hover:bg-white/10'
+              !activeSection ? 'bg-crm-purple text-white' : 'bg-slate-100 text-crm-gray-light hover:bg-slate-200'
             }`}
           >
             {t('library.all')}
@@ -142,7 +142,7 @@ export default function DiscipleshipLibrary() {
                 type="button"
                 onClick={() => setActiveSection(sec.id)}
                 className={`shrink-0 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex items-center gap-2 ${
-                  activeSection === sec.id ? 'bg-crm-purple text-crm-black' : 'bg-white/5 text-crm-gray-light hover:bg-white/10'
+                  activeSection === sec.id ? 'bg-crm-purple text-white' : 'bg-slate-100 text-crm-gray-light hover:bg-slate-200'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" /> {sec.label}
@@ -171,7 +171,7 @@ export default function DiscipleshipLibrary() {
                             <Icon className="w-12 h-12 text-crm-purple/50" />
                           </div>
                         )}
-                        <span className="absolute top-2 left-2 px-2 py-0.5 text-[10px] font-bold uppercase bg-crm-purple/90 text-crm-black rounded">
+                        <span className="absolute top-2 left-2 px-2 py-0.5 text-[10px] font-bold uppercase bg-crm-purple/90 text-white rounded">
                           {m.material_type_label || m.material_type}
                         </span>
                         {m.visibility === 'members' && (

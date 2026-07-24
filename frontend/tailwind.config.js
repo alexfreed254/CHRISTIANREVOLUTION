@@ -8,15 +8,17 @@ export default {
     extend: {
       colors: {
         crm: {
-          black: '#0a0a0a',
-          dark: '#1a1a2e',
-          purple: '#8B7FC7',
-          'purple-light': '#B8B0E3',
-          'purple-dark': '#6B5FA7',
-          white: '#FFFFFF',
-          gray: '#6B7280',
-          'gray-dark': '#374151',
-          'gray-light': '#9CA3AF',
+          /* Light theme: black = page bg, white = primary text */
+          black: '#ffffff',
+          dark: '#f1f5f9',
+          surface: '#ffffff',
+          purple: '#6B5FA7',
+          'purple-light': '#8B7FC7',
+          'purple-dark': '#5a4d96',
+          white: '#0f172a',
+          gray: '#64748b',
+          'gray-dark': '#334155',
+          'gray-light': '#475569',
           success: '#22c55e',
           live: '#ef4444',
         }
@@ -39,8 +41,8 @@ export default {
           '50%': { transform: 'translateY(-10px)' },
         },
         glow: {
-          '0%': { boxShadow: '0 0 5px rgba(139,127,199,0.3)' },
-          '100%': { boxShadow: '0 0 20px rgba(139,127,199,0.6)' },
+          '0%': { boxShadow: '0 0 5px rgba(107,95,167,0.25)' },
+          '100%': { boxShadow: '0 0 20px rgba(107,95,167,0.45)' },
         },
         slideUp: {
           '0%': { transform: 'translateY(20px)', opacity: '0' },

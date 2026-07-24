@@ -131,7 +131,7 @@ export default function ReactionBar({
               className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-all ${
                 mine > 0
                   ? 'bg-crm-purple/20 border-crm-purple/40 text-crm-white'
-                  : 'bg-white/5 border-white/10 text-crm-gray-light hover:bg-white/10 hover:text-crm-white'
+                  : 'bg-slate-100 border-slate-200 text-crm-gray-light hover:bg-slate-200 hover:text-crm-white'
               }`}
               title={r.label}
             >

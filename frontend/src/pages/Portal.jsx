@@ -100,7 +100,7 @@ export default function Portal() {
               {['admin', 'super_admin'].includes(user.role) && (
                 <Link
                   to="/admin"
-                  className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-crm-purple text-crm-black font-semibold hover:opacity-90 transition-all text-sm"
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-crm-purple text-white font-semibold hover:opacity-90 transition-all text-sm"
                 >
                   <Shield className="w-4 h-4" />
                   <span className="hidden sm:inline">Admin</span>
@@ -108,7 +108,7 @@ export default function Portal() {
               )}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-white/5 text-crm-gray hover:bg-white/10 hover:text-crm-white transition-all text-sm min-h-[44px]"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-slate-100 text-crm-gray hover:bg-slate-200 hover:text-crm-white transition-all text-sm min-h-[44px]"
               >
                 <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline">Logout</span>
@@ -123,7 +123,7 @@ export default function Portal() {
                 <p className="text-sm text-crm-gray mb-1">Member ID</p>
                 <p className="text-lg sm:text-2xl font-bold text-crm-purple tracking-wider break-all">{user.unique_id}</p>
               </div>
-              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-crm-purple to-crm-purple-light flex items-center justify-center text-crm-black font-bold text-xl sm:text-2xl shrink-0">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-crm-purple to-crm-purple-light flex items-center justify-center text-white font-bold text-xl sm:text-2xl shrink-0">
                 {user.full_name?.charAt(0)}
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function Portal() {
                 {todayMaterial.audio_url && (
                   <Link
                     to={`/discipleship/${todayMaterial.id}?lang=${language}`}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5 min-h-[44px]"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-crm-white hover:bg-slate-100 min-h-[44px]"
                   >
                     <Headphones className="w-4 h-4" /> {t('library.listen')}
                   </Link>
@@ -173,7 +173,7 @@ export default function Portal() {
                 {todayMaterial.video_url && (
                   <Link
                     to={`/discipleship/${todayMaterial.id}?lang=${language}`}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 text-sm text-crm-white hover:bg-white/5 min-h-[44px]"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-crm-white hover:bg-slate-100 min-h-[44px]"
                   >
                     <Video className="w-4 h-4" /> {t('library.watch')}
                   </Link>
@@ -230,7 +230,7 @@ export default function Portal() {
             </div>
 
             {/* Progress Bar */}
-            <div className="relative h-3 bg-white/5 rounded-full overflow-hidden mb-6">
+            <div className="relative h-3 bg-slate-100 rounded-full overflow-hidden mb-6">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
@@ -251,8 +251,8 @@ export default function Portal() {
                 <div key={i} className="text-center">
                   <div className={`w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-full flex items-center justify-center text-xs sm:text-sm font-bold mb-2 ${
                     i <= currentStageIndex 
-                      ? 'bg-crm-purple text-crm-black' 
-                      : 'bg-white/10 text-crm-gray'
+                      ? 'bg-crm-purple text-white' 
+                      : 'bg-slate-200 text-crm-gray'
                   }`}>
                     {i + 1}
                   </div>
@@ -331,7 +331,7 @@ export default function Portal() {
               { icon: DollarSign, text: 'Donated $50 offering', time: '1 week ago', color: 'text-green-400' }
             ].map((activity, i) => (
               <div key={i} className="flex items-center gap-4 p-4">
-                <div className={`w-10 h-10 rounded-full bg-white/5 flex items-center justify-center ${activity.color}`}>
+                <div className={`w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center ${activity.color}`}>
                   <activity.icon className="w-5 h-5" />
                 </div>
                 <div className="flex-1">

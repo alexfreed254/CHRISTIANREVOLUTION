@@ -30,7 +30,7 @@ export default function LanguageSelector({ compact = false, className = '' }) {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className={`flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-crm-white transition-all shrink-0 ${
+        className={`flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-100 hover:bg-slate-200 text-crm-white transition-all shrink-0 ${
           compact ? 'px-2 py-2' : 'px-3 py-2'
         }`}
         aria-label={t('common.language')}
@@ -47,14 +47,14 @@ export default function LanguageSelector({ compact = false, className = '' }) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden />
-          <div className="absolute right-0 top-full mt-2 z-50 w-[min(320px,calc(100vw-2rem))] max-h-[min(420px,70vh)] overflow-hidden rounded-2xl bg-crm-dark border border-white/10 shadow-2xl flex flex-col">
-            <div className="p-3 border-b border-white/10">
+          <div className="absolute right-0 top-full mt-2 z-50 w-[min(320px,calc(100vw-2rem))] max-h-[min(420px,70vh)] overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-xl flex flex-col">
+            <div className="p-3 border-b border-slate-200">
               <p className="text-xs text-crm-gray uppercase tracking-wider mb-2">{t('common.language')}</p>
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search languages..."
-                className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-crm-white"
+                className="w-full px-3 py-2 rounded-lg bg-slate-100 border border-slate-200 text-sm text-crm-white"
               />
               {aiTranslation && (
                 <p className="text-[10px] text-crm-purple mt-2">{t('common.aiTranslated')}</p>
@@ -76,7 +76,7 @@ export default function LanguageSelector({ compact = false, className = '' }) {
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
                         language === lang.code
                           ? 'bg-crm-purple/20 text-crm-purple'
-                          : 'text-crm-gray-light hover:bg-white/5 hover:text-crm-white'
+                          : 'text-crm-gray-light hover:bg-slate-100 hover:text-crm-white'
                       }`}
                     >
                       <span className="font-medium">{lang.label}</span>

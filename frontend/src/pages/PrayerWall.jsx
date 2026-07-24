@@ -148,7 +148,7 @@ export default function PrayerWall() {
               >
                 <GlassCard className="p-6 h-full flex flex-col">
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-crm-purple to-crm-purple-light flex items-center justify-center text-crm-black font-bold">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-crm-purple to-crm-purple-light flex items-center justify-center text-white font-bold">
                       {prayer.member_name?.charAt(0) || 'A'}
                     </div>
                     <div className="flex-1">
@@ -165,7 +165,7 @@ export default function PrayerWall() {
 
                   <p className="text-crm-gray-light mb-4 flex-1 line-clamp-6">{prayer.content}</p>
 
-                  <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                  <div className="flex items-center justify-between pt-4 border-t border-slate-200">
                     <div className="flex items-center gap-2 text-crm-purple text-sm">
                       <Heart className="w-4 h-4" />
                       <span className="font-medium">{prayer.pray_count || 0} praying</span>
@@ -225,7 +225,7 @@ export default function PrayerWall() {
                     onChange={(e) => setNewPrayer({ ...newPrayer, content: e.target.value })}
                     required
                     rows={6}
-                    className="w-full px-4 py-3 bg-crm-black/50 border border-white/10 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all resize-none"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all resize-none"
                     placeholder="Share your prayer request here..."
                   />
                 </div>
@@ -236,7 +236,7 @@ export default function PrayerWall() {
                     id="is_public"
                     checked={newPrayer.is_public}
                     onChange={(e) => setNewPrayer({ ...newPrayer, is_public: e.target.checked })}
-                    className="w-4 h-4 rounded border-white/10 bg-crm-black/50 text-crm-purple focus:ring-crm-purple"
+                    className="w-4 h-4 rounded border-slate-200 bg-slate-50 text-crm-purple focus:ring-crm-purple"
                   />
                   <label htmlFor="is_public" className="ml-2 text-sm text-crm-gray">
                     Make this prayer request public
@@ -247,7 +247,7 @@ export default function PrayerWall() {
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 px-4 py-3 rounded-xl border border-white/20 text-crm-white hover:bg-white/5 transition-all"
+                    className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-crm-white hover:bg-slate-100 transition-all"
                   >
                     Cancel
                   </button>
@@ -258,7 +258,7 @@ export default function PrayerWall() {
                   >
                     {submitting ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-crm-black/30 border-t-crm-black rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-crm-purple/30 border-t-crm-purple rounded-full animate-spin" />
                         Submitting...
                       </>
                     ) : (

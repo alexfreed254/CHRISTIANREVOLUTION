@@ -76,7 +76,7 @@ export default function About() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.03 }}
-                className="p-5 rounded-2xl bg-crm-dark/60 border border-white/10 hover:border-crm-purple/30 transition-colors"
+                className="p-5 rounded-2xl bg-slate-50 border border-slate-200 hover:border-crm-purple/30 transition-colors"
               >
                 <BookOpen className="w-5 h-5 text-crm-purple mb-2" />
                 <h3 className="font-semibold text-crm-white mb-1">{m.name}</h3>
@@ -91,11 +91,11 @@ export default function About() {
             <Radio className="w-8 h-8 text-crm-purple mx-auto mb-2" />
             <span className="font-semibold text-crm-white">Watch Live</span>
           </Link>
-          <Link to="/media" className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+          <Link to="/media" className="p-6 rounded-2xl bg-slate-100 border border-slate-200 hover:bg-slate-200 transition-all">
             <BookOpen className="w-8 h-8 text-crm-purple mx-auto mb-2" />
             <span className="font-semibold text-crm-white">Media Library</span>
           </Link>
-          <Link to="/register" className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+          <Link to="/register" className="p-6 rounded-2xl bg-slate-100 border border-slate-200 hover:bg-slate-200 transition-all">
             <Users className="w-8 h-8 text-crm-purple mx-auto mb-2" />
             <span className="font-semibold text-crm-white">Join CRM</span>
           </Link>

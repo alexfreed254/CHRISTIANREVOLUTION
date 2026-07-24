@@ -76,7 +76,7 @@ export default function Home() {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-crm-black via-crm-dark to-crm-black" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white via-purple-50/50 to-slate-50" />
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-crm-purple/20 rounded-full blur-[120px]" />
             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-crm-purple-light/10 rounded-full blur-[120px]" />
@@ -157,7 +157,7 @@ export default function Home() {
 
               <Link 
                 to="/media" 
-                className="flex items-center gap-2 px-6 py-3 rounded-xl border border-white/20 text-crm-white hover:bg-white/5 transition-all text-sm font-medium"
+                className="flex items-center gap-2 px-6 py-3 rounded-xl border border-slate-200 text-crm-white hover:bg-slate-100 transition-all text-sm font-medium"
               >
                 <Play className="w-4 h-4" />
                 Browse Media Library
@@ -321,11 +321,11 @@ export default function Home() {
                   {['New Believer', 'Foundations', 'Discipleship', 'Leadership', 'Commissioned'].map((stage, i) => (
                     <div key={stage} className="flex items-center gap-2">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                        i === 0 ? 'bg-crm-purple text-crm-black' : 'bg-white/10 text-crm-gray'
+                        i === 0 ? 'bg-crm-purple text-white' : 'bg-slate-200 text-crm-gray'
                       }`}>
                         {i + 1}
                       </div>
-                      {i < 4 && <div className="w-4 h-0.5 bg-white/10 hidden sm:block" />}
+                      {i < 4 && <div className="w-4 h-0.5 bg-slate-200 hidden sm:block" />}
                     </div>
                   ))}
                 </div>
@@ -363,7 +363,7 @@ export default function Home() {
             ].map((prayer, i) => (
               <GlassCard key={i} className="p-6">
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-crm-purple to-crm-purple-light flex items-center justify-center text-crm-black font-bold text-sm">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-crm-purple to-crm-purple-light flex items-center justify-center text-white font-bold text-sm">
                     {prayer.name.charAt(0)}
                   </div>
                   <div>
@@ -383,7 +383,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-white/10">
+      <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-slate-200">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">

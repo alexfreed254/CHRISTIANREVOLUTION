@@ -322,7 +322,7 @@ export default function AdminDashboard() {
             <h1 className="text-2xl sm:text-3xl font-bold text-crm-white">Superadmin Dashboard</h1>
             <p className="text-sm sm:text-base text-crm-gray">Manage users, streams, media, donations, and prayers</p>
           </div>
-          <button onClick={() => loadTab(tab)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-crm-gray-light hover:text-white">
+          <button onClick={() => loadTab(tab)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-crm-gray-light hover:text-crm-purple-dark">
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
           </button>
         </div>
@@ -333,7 +333,7 @@ export default function AdminDashboard() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl whitespace-nowrap transition-all text-sm ${
-                tab === t.id ? 'bg-crm-purple/20 text-crm-purple border border-crm-purple/30' : 'bg-white/5 text-crm-gray-light border border-transparent hover:bg-white/10'
+                tab === t.id ? 'bg-crm-purple/20 text-crm-purple border border-crm-purple/30' : 'bg-slate-100 text-crm-gray-light border border-transparent hover:bg-slate-200'
               }`}
             >
               <t.icon className="w-4 h-4" /> {t.label}
@@ -357,7 +357,7 @@ export default function AdminDashboard() {
               ['Streams', stats.streams],
               ['Souls reached', stats.souls ?? stats.souls_reached],
             ].map(([label, value]) => (
-              <div key={label} className="p-5 rounded-2xl bg-crm-dark/60 border border-white/10">
+              <div key={label} className="p-5 rounded-2xl bg-slate-50 border border-slate-200">
                 <p className="text-crm-gray text-sm mb-1">{label}</p>
                 <p className="text-2xl font-bold text-crm-white">{value}</p>
               </div>
@@ -377,14 +377,14 @@ export default function AdminDashboard() {
                   value={memberQuery}
                   onChange={(e) => setMemberQuery(e.target.value)}
                   placeholder="Search members..."
-                  className="w-full pl-10 pr-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+                  className="w-full pl-10 pr-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
                 />
               </div>
-              <button className="px-4 py-2 rounded-xl bg-crm-purple text-crm-black font-semibold">Search</button>
+              <button className="px-4 py-2 rounded-xl bg-crm-purple text-white font-semibold">Search</button>
             </form>
-            <div className="overflow-x-auto rounded-2xl border border-white/10">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200">
               <table className="w-full text-sm">
-                <thead className="bg-white/5 text-crm-gray">
+                <thead className="bg-slate-100 text-crm-gray">
                   <tr>
                     <th className="text-left p-3">Name</th>
                     <th className="text-left p-3">Email</th>
@@ -406,7 +406,7 @@ export default function AdminDashboard() {
                         <select
                           value={m.role || 'member'}
                           onChange={(e) => updateRole(m.id, e.target.value)}
-                          className="bg-crm-dark border border-white/10 rounded-lg px-2 py-1 text-crm-white"
+                          className="bg-crm-dark border border-slate-200 rounded-lg px-2 py-1 text-crm-white"
                         >
                           {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                         </select>
@@ -426,7 +426,7 @@ export default function AdminDashboard() {
 
         {tab === 'streams' && (
           <div className="grid lg:grid-cols-2 gap-8">
-            <form onSubmit={createStream} className="p-6 rounded-2xl bg-crm-dark/60 border border-white/10 space-y-3">
+            <form onSubmit={createStream} className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
               <h2 className="text-lg font-semibold text-crm-white flex items-center gap-2"><Plus className="w-5 h-5" /> Add / Go Live</h2>
               {['title', 'speaker', 'stream_url', 'thumbnail_url'].map((field) => (
                 <input
@@ -435,33 +435,33 @@ export default function AdminDashboard() {
                   placeholder={field.replace('_', ' ')}
                   value={streamForm[field]}
                   onChange={(e) => setStreamForm({ ...streamForm, [field]: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
                 />
               ))}
               <textarea
                 placeholder="description"
                 value={streamForm.description}
                 onChange={(e) => setStreamForm({ ...streamForm, description: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+                className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
                 rows={3}
               />
               <select
                 value={streamForm.status}
                 onChange={(e) => setStreamForm({ ...streamForm, status: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+                className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
               >
                 <option value="scheduled">scheduled</option>
                 <option value="live">live</option>
                 <option value="ended">ended</option>
               </select>
-              <button type="submit" className="w-full py-3 rounded-xl bg-crm-purple text-crm-black font-bold flex items-center justify-center gap-2">
+              <button type="submit" className="w-full py-3 rounded-xl bg-crm-purple text-white font-bold flex items-center justify-center gap-2">
                 <Save className="w-4 h-4" /> Save Stream
               </button>
             </form>
 
             <div className="space-y-3">
               {streams.map((s) => (
-                <div key={s.id} className="p-4 rounded-2xl bg-crm-dark/60 border border-white/10">
+                <div key={s.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="font-semibold text-crm-white">{s.title}</h3>
@@ -470,7 +470,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex flex-col gap-1">
                       <button onClick={() => setStreamStatus(s.id, 'live')} className="text-xs px-2 py-1 rounded bg-red-500/20 text-red-300">Go Live</button>
-                      <button onClick={() => setStreamStatus(s.id, 'ended')} className="text-xs px-2 py-1 rounded bg-white/10 text-crm-gray-light">End</button>
+                      <button onClick={() => setStreamStatus(s.id, 'ended')} className="text-xs px-2 py-1 rounded bg-slate-200 text-crm-gray-light">End</button>
                       <button onClick={() => deleteStream(s.id)} className="text-xs px-2 py-1 rounded bg-red-500/10 text-red-400">Delete</button>
                     </div>
                   </div>
@@ -483,7 +483,7 @@ export default function AdminDashboard() {
 
         {tab === 'media' && (
           <div className="grid lg:grid-cols-2 gap-8">
-            <form onSubmit={createMedia} className="p-6 rounded-2xl bg-crm-dark/60 border border-white/10 space-y-3">
+            <form onSubmit={createMedia} className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
               <h2 className="text-lg font-semibold text-crm-white flex items-center gap-2"><Plus className="w-5 h-5" /> Add Media</h2>
               {['title', 'speaker', 'video_url', 'audio_url', 'thumbnail_url', 'bible_reference'].map((field) => (
                 <input
@@ -492,7 +492,7 @@ export default function AdminDashboard() {
                   placeholder={field.replace('_', ' ')}
                   value={mediaForm[field]}
                   onChange={(e) => setMediaForm({ ...mediaForm, [field]: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
                 />
               ))}
               <input
@@ -500,21 +500,21 @@ export default function AdminDashboard() {
                 placeholder="duration (seconds)"
                 value={mediaForm.duration}
                 onChange={(e) => setMediaForm({ ...mediaForm, duration: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+                className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
               />
               <textarea
                 placeholder="description"
                 value={mediaForm.description}
                 onChange={(e) => setMediaForm({ ...mediaForm, description: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+                className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
                 rows={3}
               />
-              <button type="submit" className="w-full py-3 rounded-xl bg-crm-purple text-crm-black font-bold">Add to Library</button>
+              <button type="submit" className="w-full py-3 rounded-xl bg-crm-purple text-white font-bold">Add to Library</button>
             </form>
 
             <div className="space-y-3 max-h-[70vh] overflow-y-auto">
               {media.map((m) => (
-                <div key={m.id} className="p-4 rounded-2xl bg-crm-dark/60 border border-white/10 flex gap-3">
+                <div key={m.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex gap-3">
                   {m.thumbnail_url && (
                     <img src={m.thumbnail_url} alt="" className="w-24 h-16 object-cover rounded-lg" />
                   )}
@@ -538,9 +538,9 @@ export default function AdminDashboard() {
               <p className="text-crm-gray text-sm">Total recorded giving</p>
               <p className="text-3xl font-bold text-crm-white">${Number(givingTotal).toLocaleString()}</p>
             </div>
-            <div className="overflow-x-auto rounded-2xl border border-white/10">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200">
               <table className="w-full text-sm">
-                <thead className="bg-white/5 text-crm-gray">
+                <thead className="bg-slate-100 text-crm-gray">
                   <tr>
                     <th className="text-left p-3">Amount</th>
                     <th className="text-left p-3">Category</th>
@@ -586,7 +586,7 @@ export default function AdminDashboard() {
 
         {tab === 'payments' && isSuperAdmin && (
           <form onSubmit={savePaymentSettings} className="space-y-8 max-w-3xl">
-            <div className="p-6 rounded-2xl bg-crm-dark/60 border border-[#635BFF]/30 space-y-4">
+            <div className="p-6 rounded-2xl bg-slate-50 border border-[#635BFF]/30 space-y-4">
               <div className="flex items-center gap-3 mb-2">
                 <StripeLogo className="h-7" />
                 <h2 className="text-lg font-bold text-crm-white">Stripe (cards · Apple Pay · Google Pay)</h2>
@@ -600,7 +600,7 @@ export default function AdminDashboard() {
                   type="checkbox"
                   checked={paymentForm.stripe_enabled}
                   onChange={(e) => setPaymentForm({ ...paymentForm, stripe_enabled: e.target.checked })}
-                  className="w-4 h-4 rounded border-white/10 text-crm-purple"
+                  className="w-4 h-4 rounded border-slate-200 text-crm-purple"
                 />
                 <span className="text-sm text-crm-gray-light">Enable Stripe on Support and Donations</span>
               </label>
@@ -609,14 +609,14 @@ export default function AdminDashboard() {
                 value={paymentForm.stripe_display_name}
                 onChange={(e) => setPaymentForm({ ...paymentForm, stripe_display_name: e.target.value })}
                 placeholder="Christ Revolution Movement"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+                className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
               />
               <label className="block text-sm text-crm-gray-light">Stripe Publishable Key (pk_live_… or pk_test_…)</label>
               <input
                 value={paymentForm.stripe_publishable_key}
                 onChange={(e) => setPaymentForm({ ...paymentForm, stripe_publishable_key: e.target.value })}
                 placeholder="pk_live_..."
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white font-mono text-sm"
+                className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white font-mono text-sm"
               />
               <label className="block text-sm text-crm-gray-light">Stripe Account ID — where money is collected (acct_…)</label>
               <div className="flex gap-2">
@@ -624,7 +624,7 @@ export default function AdminDashboard() {
                   value={paymentForm.stripe_account_id}
                   onChange={(e) => setPaymentForm({ ...paymentForm, stripe_account_id: e.target.value })}
                   placeholder="acct_1234567890"
-                  className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white font-mono text-sm"
+                  className="flex-1 px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white font-mono text-sm"
                 />
                 <button
                   type="button"
@@ -646,7 +646,7 @@ export default function AdminDashboard() {
                 </p>
               )}
             </div>
-            <div className="p-6 rounded-2xl bg-crm-dark/60 border border-white/10 space-y-4">
+            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
               <div className="flex items-center gap-3 mb-2">
                 <PayPalLogo className="h-7" />
                 <h2 className="text-lg font-bold text-crm-white">PayPal (international / cards)</h2>
@@ -662,7 +662,7 @@ export default function AdminDashboard() {
                   value={paymentForm.paypal_email}
                   onChange={(e) => setPaymentForm({ ...paymentForm, paypal_email: e.target.value })}
                   placeholder="church@paypal.com"
-                  className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white"
+                  className="flex-1 px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
                 />
                 <button type="button" onClick={clearPaypalEmail} className="px-4 py-2 rounded-xl border border-red-500/40 text-red-400 text-sm">
                   Remove
@@ -673,7 +673,7 @@ export default function AdminDashboard() {
                 value={paymentForm.paypal_client_id}
                 onChange={(e) => setPaymentForm({ ...paymentForm, paypal_client_id: e.target.value })}
                 placeholder="PayPal REST App Client ID"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white font-mono text-sm"
+                className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white font-mono text-sm"
               />
               {paymentMeta?.public && (
                 <p className="text-xs text-crm-gray">
@@ -683,7 +683,7 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            <div className="p-6 rounded-2xl bg-crm-dark/60 border border-white/10 space-y-4">
+            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
               <div className="flex items-center gap-3 mb-2">
                 <MpesaLogo className="h-7" />
                 <h2 className="text-lg font-bold text-crm-white">M-Pesa (Kenya)</h2>
@@ -697,7 +697,7 @@ export default function AdminDashboard() {
                   value={paymentForm.mpesa_till_number}
                   onChange={(e) => setPaymentForm({ ...paymentForm, mpesa_till_number: e.target.value })}
                   placeholder="e.g. 123456"
-                  className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white font-mono tracking-wider"
+                  className="flex-1 px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white font-mono tracking-wider"
                 />
                 <button type="button" onClick={clearTill} className="px-4 py-2 rounded-xl border border-red-500/40 text-red-400 text-sm">
                   Remove
@@ -708,14 +708,14 @@ export default function AdminDashboard() {
                 value={paymentForm.mpesa_shortcode}
                 onChange={(e) => setPaymentForm({ ...paymentForm, mpesa_shortcode: e.target.value })}
                 placeholder="Same as Till, or Paybill shortcode"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white font-mono"
+                className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white font-mono"
               />
               <label className="block text-sm text-crm-gray-light">STK Callback URL</label>
               <input
                 value={paymentForm.mpesa_callback_url}
                 onChange={(e) => setPaymentForm({ ...paymentForm, mpesa_callback_url: e.target.value })}
                 placeholder="https://your-app.onrender.com/api/payments/mpesa/callback"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm"
+                className="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-crm-white text-sm"
               />
               <div className="grid sm:grid-cols-2 gap-3 pt-2">
                 <div>
@@ -727,7 +727,7 @@ export default function AdminDashboard() {
                     value={paymentForm.mpesa_consumer_key}
                     onChange={(e) => setPaymentForm({ ...paymentForm, mpesa_consumer_key: e.target.value })}
                     placeholder="Leave blank to keep existing"
-                    className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-crm-white text-sm"
                   />
                 </div>
                 <div>
@@ -739,7 +739,7 @@ export default function AdminDashboard() {
                     value={paymentForm.mpesa_consumer_secret}
                     onChange={(e) => setPaymentForm({ ...paymentForm, mpesa_consumer_secret: e.target.value })}
                     placeholder="Leave blank to keep existing"
-                    className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-crm-white text-sm"
                   />
                 </div>
               </div>
@@ -752,7 +752,7 @@ export default function AdminDashboard() {
                   value={paymentForm.mpesa_passkey}
                   onChange={(e) => setPaymentForm({ ...paymentForm, mpesa_passkey: e.target.value })}
                   placeholder="Leave blank to keep existing"
-                  className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-crm-white text-sm"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-crm-white text-sm"
                 />
               </div>
               {paymentMeta?.public && (
@@ -773,7 +773,7 @@ export default function AdminDashboard() {
         {tab === 'prayers' && (
           <div className="space-y-3">
             {prayers.map((p) => (
-              <div key={p.id} className="p-4 rounded-2xl bg-crm-dark/60 border border-white/10 flex justify-between gap-4">
+              <div key={p.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex justify-between gap-4">
                 <div>
                   <p className="text-crm-white">{p.content}</p>
                   <p className="text-xs text-crm-gray mt-2">
