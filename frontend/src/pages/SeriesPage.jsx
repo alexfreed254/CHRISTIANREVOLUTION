@@ -47,7 +47,7 @@ export default function SeriesPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-crm-white mb-2">Series Not Found</h2>
           <p className="text-crm-gray mb-6">This series does not exist.</p>
-          <Link to="/media" className="shield-button text-sm inline-block">
+          <Link to="/sermons" className="shield-button text-sm inline-block">
             ← Back to Media Library
           </Link>
         </div>
@@ -61,7 +61,7 @@ export default function SeriesPage() {
       <div className="relative overflow-hidden bg-gradient-to-b from-crm-purple/10 to-transparent py-16 mb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
-            to="/media"
+            to="/sermons"
             className="inline-flex items-center gap-2 text-crm-gray hover:text-crm-white mb-6 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />

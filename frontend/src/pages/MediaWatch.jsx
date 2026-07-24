@@ -75,7 +75,7 @@ export default function MediaWatch() {
     <div className={`min-h-screen pb-12 ${theater ? 'bg-black' : ''}`}>
       <div className={`mx-auto px-4 sm:px-6 lg:px-8 ${theater ? 'max-w-[1600px]' : 'max-w-6xl'}`}>
         {!theater && (
-          <Link to="/media" className="inline-flex items-center gap-2 text-crm-gray-light hover:text-crm-white mb-4 transition-colors">
+          <Link to="/sermons" className="inline-flex items-center gap-2 text-crm-gray-light hover:text-crm-white mb-4 transition-colors">
             <ArrowLeft className="w-4 h-4" /> {t('media.library')}
           </Link>
         )}

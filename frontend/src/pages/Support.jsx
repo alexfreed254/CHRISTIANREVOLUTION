@@ -316,7 +316,8 @@ export default function Support() {
           <div className="flex justify-center mb-4">
             <BrandLogo size="md" />
           </div>
-          <h1 className="text-4xl font-bold text-crm-white mb-4">Support and Donations</h1>
+          <h1 className="text-4xl font-bold text-crm-white mb-4">Give</h1>
+          <p className="text-crm-gray-light max-w-xl mx-auto">Tithes, offerings, missions, and special projects — M-Pesa, card, and PayPal.</p>
           <p className="text-crm-gray-light max-w-2xl mx-auto">
             &ldquo;Each of you should give what you have decided in your heart to give… for God loves a cheerful giver.&rdquo;
             — 2 Corinthians 9:7

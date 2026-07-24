@@ -15,14 +15,14 @@ import MpesaLogo from '../components/common/MpesaLogo'
 import StripeLogo from '../components/common/StripeLogo'
 
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'users', label: 'Users', icon: Users },
-  { id: 'streams', label: 'Streams', icon: Radio },
-  { id: 'media', label: 'Media', icon: Library },
+  { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'users', label: 'Members', icon: Users },
+  { id: 'spiritual', label: 'Daily Materials', icon: BookMarked, superOnly: true },
+  { id: 'media', label: 'Sermons & Media', icon: Library },
+  { id: 'streams', label: 'Live & Events', icon: Radio },
+  { id: 'prayers', label: 'Prayer', icon: Heart },
   { id: 'giving', label: 'Donations', icon: DollarSign },
-  { id: 'spiritual', label: 'Spiritual Materials', icon: BookMarked, superOnly: true },
-  { id: 'payments', label: 'Payment Setup', icon: Settings, superOnly: true },
-  { id: 'prayers', label: 'Prayers', icon: Heart },
+  { id: 'payments', label: 'Settings', icon: Settings, superOnly: true },
 ]
 
 const ROLES = ['member', 'volunteer', 'leader', 'admin', 'super_admin']
@@ -319,8 +319,8 @@ export default function AdminDashboard() {
       <div className="page-container">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
           <div className="min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-crm-white">Superadmin Dashboard</h1>
-            <p className="text-sm sm:text-base text-crm-gray">Manage users, streams, media, donations, and prayers</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-crm-white">Church Admin</h1>
+            <p className="text-sm sm:text-base text-crm-gray">Members, content, events, prayer, and donations</p>
           </div>
           <button onClick={() => loadTab(tab)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-crm-gray-light hover:text-crm-purple-dark">
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
@@ -521,7 +521,7 @@ export default function AdminDashboard() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-crm-white truncate">{m.title}</h3>
                     <p className="text-xs text-crm-gray">{m.speaker}</p>
-                    <Link to={`/media/${m.id}`} className="text-xs text-crm-purple hover:underline">Play →</Link>
+                    <Link to={`/sermons/${m.id}`} className="text-xs text-crm-purple hover:underline">Play →</Link>
                   </div>
                   <button onClick={() => deleteMedia(m.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg">
                     <Trash2 className="w-4 h-4" />

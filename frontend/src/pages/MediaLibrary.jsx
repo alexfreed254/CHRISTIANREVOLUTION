@@ -10,8 +10,10 @@ import Footer from '../components/common/Footer'
 import { useLanguage } from '../context/LanguageContext'
 import LanguageSelector from '../components/common/LanguageSelector'
 
-export default function MediaLibrary() {
+export default function MediaLibrary({ pageTitle, pageSubtitle }) {
   const { language, t, aiTranslation } = useLanguage()
+  const title = pageTitle || t('media.library')
+  const subtitle = pageSubtitle || 'Explore thousands of sermons, teachings, and resources from the CRM global network'
   const [media, setMedia] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -84,10 +86,8 @@ export default function MediaLibrary() {
         >
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-4xl font-bold text-crm-white mb-4">{t('media.library')}</h1>
-              <p className="text-crm-gray-light">
-                Explore thousands of sermons, teachings, and resources from the CRM global network
-              </p>
+              <h1 className="text-4xl font-bold text-crm-white mb-4">{title}</h1>
+              <p className="text-crm-gray-light">{subtitle}</p>
             </div>
             <LanguageSelector compact className="shrink-0" />
           </div>

@@ -28,7 +28,7 @@ export default function VideoCard({ media, index = 0, onPlayAudio }) {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: index * 0.05 }}
       className="group" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-      <Link to={`/media/${media.id}`} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-crm-purple rounded-xl">
+      <Link to={`/sermons/${media.id}`} className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-crm-purple rounded-xl">
         <div className="relative aspect-video rounded-xl overflow-hidden bg-crm-dark shadow-lg shadow-slate-200">
           {!imageLoaded && <div className="absolute inset-0 bg-gradient-to-br from-crm-dark via-crm-purple/5 to-slate-100 animate-pulse" />}
           <img src={thumb} alt={media.title}
