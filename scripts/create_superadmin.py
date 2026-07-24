@@ -1,12 +1,13 @@
 """
-Create or promote a CRM superadmin in the members table.
+Legacy script — prefer Supabase Authentication for super admin accounts.
 
-This app does NOT use Supabase Authentication (Auth users).
-Login uses public.members + password_hash from backend/auth.py.
+See SUPERADMIN_SETUP.md:
+  Supabase Dashboard → Authentication → Users → Add user
+  User Metadata: {"role": "super_admin", "full_name": "Your Name"}
 
-Usage:
-  python scripts/create_superadmin.py
-  python scripts/create_superadmin.py --email you@example.com --username admin --password 'YourSecurePass' --name 'Admin'
+This script still works for emergency setup in the members table only
+(without Supabase Auth). Those accounts must use website /login with username,
+not Supabase Auth email login.
 """
 
 from __future__ import annotations
@@ -27,9 +28,11 @@ from backend.supabase_client import supabase, db_ready
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Create/promote CRM superadmin")
-    parser.add_argument("--email", default="alexfreed254@gmail.com")
-    parser.add_argument("--username", default="alexfreed254")
+    print("NOTE: Preferred method is Supabase Authentication. See SUPERADMIN_SETUP.md\n")
+
+    parser = argparse.ArgumentParser(description="Legacy: create/promote CRM superadmin in members table")
+    parser.add_argument("--email", default="admin@example.com")
+    parser.add_argument("--username", default="superadmin")
     parser.add_argument("--password", default="")
     parser.add_argument("--name", default="CRM Superadmin")
     parser.add_argument("--promote-only", action="store_true", help="Only set role=super_admin for existing email")
@@ -49,18 +52,15 @@ def main() -> int:
             updates["password_hash"] = hash_password(args.password)
         result = supabase.table("members").update(updates).eq("id", member["id"]).execute()
         row = result.data[0]
-        print("Promoted existing member to super_admin:")
+        print("Promoted existing member to super_admin (members table only):")
         print(f"  username: {row['username']}")
         print(f"  email:    {row['email']}")
         print(f"  role:     {row['role']}")
-        if args.password:
-            print("  password: (updated)")
-        else:
-            print("  password: (unchanged — use the password from registration)")
+        print("\nFor Supabase Auth login, also create the same email in Authentication → Add user.")
         return 0
 
     if args.promote_only:
-        print(f"ERROR: No member with email {email}. Register on the site first, or omit --promote-only.")
+        print(f"ERROR: No member with email {email}.")
         return 1
 
     if not args.password:
@@ -92,12 +92,10 @@ def main() -> int:
     }
     result = supabase.table("members").insert(member).execute()
     row = result.data[0]
-    print("Created superadmin:")
+    print("Created superadmin in members table (legacy):")
     print(f"  username: {row['username']}")
     print(f"  email:    {row['email']}")
-    print(f"  role:     {row['role']}")
-    print("Log in at /login with that username (or email) and password.")
-    print("Do NOT use Supabase Authentication users — they are not used by this app.")
+    print("\nRecommended: also add this email in Supabase Authentication → Add user.")
     return 0
 
 

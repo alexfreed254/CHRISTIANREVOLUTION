@@ -334,7 +334,7 @@ export default function AdminDashboard() {
         <h1 className="text-2xl font-bold text-crm-white mb-2">Admin access required</h1>
         <p className="text-crm-gray mb-6 max-w-md">
           Your account role is <span className="text-crm-purple">{user.role || 'member'}</span>.
-          Ask a superadmin to promote you, or set SUPERADMIN_EMAIL and log in with that email.
+          Ask a super admin to promote you in Admin → Members, or create your account in Supabase Authentication with admin metadata (see SUPERADMIN_SETUP.md).
         </p>
         <Link to="/portal" className="text-crm-purple hover:underline">Back to portal</Link>
       </div>

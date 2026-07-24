@@ -87,6 +87,7 @@ CREATE TABLE IF NOT EXISTS members (
     last_seen           TIMESTAMP DEFAULT NOW(),
     preferred_language  VARCHAR(10) DEFAULT 'en',
     timezone            VARCHAR(50) DEFAULT 'UTC',
+    auth_user_id        UUID UNIQUE,
     bio                 TEXT,
     profile_photo_url   TEXT,
     ministry_interests  TEXT DEFAULT '[]',
@@ -101,6 +102,7 @@ COMMENT ON COLUMN members.engagement_score IS 'Calculated engagement metric (0-1
 COMMENT ON COLUMN members.streak IS 'Consecutive days of platform activity';
 COMMENT ON COLUMN members.role IS 'Platform role: member, volunteer, leader, admin, super_admin';
 COMMENT ON COLUMN members.unique_id IS 'Public-facing unique identifier for the member';
+COMMENT ON COLUMN members.auth_user_id IS 'Supabase Authentication user id (auth.users.id) for admin login';
 
 -- ───────────────────────────────────────────────────────────────────────────────
 -- Table: sessions

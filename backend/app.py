@@ -16,12 +16,22 @@ import secrets
 try:
     from .supabase_client import supabase, db_ready, get_supabase, db_execute
     from .auth import hash_password, verify_password, generate_unique_id
+    from .supabase_auth import (
+        sign_in_with_supabase_auth,
+        get_or_create_member_from_auth_user,
+        supabase_auth_configured,
+    )
     from . import reactions as reaction_store
     from . import live_stats as live_stats_mod
     from . import payments as payments_mod
 except ImportError:
     from supabase_client import supabase, db_ready, get_supabase, db_execute
     from auth import hash_password, verify_password, generate_unique_id
+    from supabase_auth import (
+        sign_in_with_supabase_auth,
+        get_or_create_member_from_auth_user,
+        supabase_auth_configured,
+    )
     import reactions as reaction_store
     import live_stats as live_stats_mod
     import payments as payments_mod
@@ -323,24 +333,33 @@ def login():
 
     try:
         data = request.get_json(silent=True) or {}
-        username = (data.get('username') or '').strip()
+        username = (data.get('username') or data.get('email') or '').strip()
         password = data.get('password') or ''
         if not username or not password:
             return jsonify({'error': 'Username and password required'}), 400
 
+        member = None
+
+        # 1) Standard member login (website registration — members table)
         result = db_execute(
             lambda client: client.table("members").select("*").eq("username", username).execute()
         )
         if not result.data:
-            # Also allow login by email
             result = db_execute(
                 lambda client: client.table("members").select("*").eq("email", username.lower()).execute()
             )
-        if not result.data:
-            return jsonify({'error': 'Invalid credentials'}), 401
+        if result.data:
+            row = result.data[0]
+            if verify_password(password, row.get('password_hash') or ''):
+                member = row
 
-        member = result.data[0]
-        if not verify_password(password, member.get('password_hash') or ''):
+        # 2) Supabase Authentication (super admin / church admin — create user in Supabase dashboard)
+        if not member and '@' in username and supabase_auth_configured():
+            auth_user = sign_in_with_supabase_auth(username, password)
+            if auth_user:
+                member = get_or_create_member_from_auth_user(auth_user)
+
+        if not member:
             return jsonify({'error': 'Invalid credentials'}), 401
 
         db_execute(
@@ -350,18 +369,6 @@ def login():
         )
 
         member_data = public_member(member)
-        # Auto-promote configured bootstrap email
-        bootstrap = (os.environ.get('SUPERADMIN_EMAIL') or '').strip().lower()
-        if bootstrap and (member_data.get('email') or '').lower() == bootstrap and member_data.get('role') != 'super_admin':
-            try:
-                promoted = db_execute(
-                    lambda client: client.table("members").update({'role': 'super_admin'}).eq('id', member['id']).execute()
-                )
-                if promoted.data:
-                    member_data = public_member(promoted.data[0])
-            except Exception as e:
-                print(f"Superadmin bootstrap skipped: {e}")
-
         token = create_access_token(identity=str(member_data['id']))
         return jsonify({'token': token, 'member': member_data}), 200
 

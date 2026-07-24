@@ -62,7 +62,7 @@ export default function Login() {
               {/* Username */}
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-crm-gray-light mb-2">
-                  Username
+                  Email or username
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -76,7 +76,7 @@ export default function Login() {
                     onChange={handleChange}
                     required
                     className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-crm-white placeholder-crm-gray focus:outline-none focus:border-crm-purple focus:ring-1 focus:ring-crm-purple transition-all"
-                    placeholder="Enter your username"
+                    placeholder="Email or username"
                   />
                 </div>
               </div>
@@ -151,6 +151,9 @@ export default function Login() {
             >
               Create an Account
             </Link>
+            <p className="text-xs text-crm-gray text-center mt-4">
+              Church admins: sign in with the email and password from Supabase Authentication.
+            </p>
           </GlassCard>
 
           {/* Back Home */}

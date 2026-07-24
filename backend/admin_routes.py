@@ -406,24 +406,17 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
         db_execute(lambda client: client.table("prayer_requests").delete().eq("id", prayer_id).execute())
         return jsonify({'status': 'ok'}), 200
 
-    # Bootstrap: promote configured email to super_admin if needed
+    # Super admin accounts are created in Supabase Dashboard → Authentication → Add user
     @app.route('/api/admin/bootstrap', methods=['POST'])
     @jwt_required()
     def admin_bootstrap():
-        """Promote the configured SUPERADMIN_EMAIL account to super_admin (one-time helper)."""
-        email = (os.environ.get('SUPERADMIN_EMAIL') or '').strip().lower()
-        if not email:
-            return jsonify({
-                'error': 'Set SUPERADMIN_EMAIL env var, or run SQL: '
-                         "UPDATE members SET role='super_admin' WHERE email='you@example.com'"
-            }), 400
-        member_id = get_jwt_identity()
-        member = _get_member(member_id)
-        if not member:
-            return jsonify({'error': 'Unauthorized'}), 401
-        if (member.get('email') or '').lower() != email:
-            return jsonify({'error': 'Logged-in email does not match SUPERADMIN_EMAIL'}), 403
-        result = db_execute(
-            lambda client: client.table("members").update({'role': 'super_admin'}).eq('id', member_id).execute()
-        )
-        return jsonify({'member': public_member(result.data[0]), 'message': 'You are now super_admin'}), 200
+        """Legacy helper — super admins should use Supabase Authentication instead."""
+        return jsonify({
+            'error': 'Use Supabase Authentication',
+            'message': (
+                'Create super admin in Supabase Dashboard → Authentication → Users → Add user. '
+                'Set User Metadata to {"role": "super_admin", "full_name": "Your Name"}. '
+                'Then sign in at /login with that email and password. '
+                'See SUPERADMIN_SETUP.md for full steps.'
+            ),
+        }), 400

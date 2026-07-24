@@ -104,11 +104,26 @@ Required environment variables:
 ```env
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_KEY=your-service-role-key-here
+SUPABASE_ANON_KEY=your-anon-public-key-here
 SESSION_SECRET=your-random-secret-key-here
 JWT_SECRET_KEY=your-jwt-secret-key-here
 ENVIRONMENT=development
 PORT=8000
 ```
+
+### Super Admin (Supabase Authentication)
+
+**Do not** use scripts or `SUPERADMIN_EMAIL` for super admin setup.
+
+1. Run `database_supabase_auth.sql` in Supabase SQL Editor
+2. Set `SUPABASE_ANON_KEY` in Render / `.env`
+3. **Supabase Dashboard → Authentication → Users → Add user**
+4. Set User Metadata: `{"role": "super_admin", "full_name": "Your Name"}`
+5. Sign in at `/login` with that **email** and password
+
+Full guide: [SUPERADMIN_SETUP.md](./SUPERADMIN_SETUP.md)
+
+Members still register normally at `/register`.
 
 ### 3. Database Setup
 1. Create a new Supabase project at https://supabase.com
@@ -162,6 +177,7 @@ The frontend will start on `http://localhost:5173`
 3. **Set environment variables** in Render dashboard:
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_KEY`
+   - `SUPABASE_ANON_KEY` (for super admin login)
    - Let Render generate `SESSION_SECRET` and `JWT_SECRET_KEY`
 
 4. **Deploy!** Render will:
@@ -171,7 +187,7 @@ The frontend will start on `http://localhost:5173`
 
 ### Digital Giving (PayPal + M-Pesa)
 
-1. Log in as **superadmin** → **Admin** → **Payment Setup**
+1. Log in as **super admin** (Supabase Authentication email) → **Admin** → **Settings**
 2. Add the church **PayPal Business email** (and optional Client ID)
 3. Add the **M-Pesa Till / number**
 4. For automatic STK Push, add Daraja shortcode, passkey, consumer key/secret, and set callback to:
@@ -216,8 +232,9 @@ Donors use **Support** (`/give`): PayPal Checkout for international/cards, M-Pes
 
 ### 6. Secure Authentication
 - JWT-based authentication
-- Password hashing with SHA-256
-- Session management
+- **Members:** register on website (`/register`)
+- **Super Admin / church admins:** Supabase Authentication (Dashboard → Add user)
+- Password hashing for member accounts
 - Role-based access control
 
 ## 🌐 API Endpoints
