@@ -87,6 +87,10 @@ CREATE TABLE IF NOT EXISTS members (
     last_seen           TIMESTAMP DEFAULT NOW(),
     preferred_language  VARCHAR(10) DEFAULT 'en',
     timezone            VARCHAR(50) DEFAULT 'UTC',
+    bio                 TEXT,
+    profile_photo_url   TEXT,
+    ministry_interests  TEXT DEFAULT '[]',
+    membership_status   VARCHAR(50) DEFAULT 'active_member',
     created_at          TIMESTAMP DEFAULT NOW(),
     updated_at          TIMESTAMP DEFAULT NOW()
 );

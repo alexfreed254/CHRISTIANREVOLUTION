@@ -9,6 +9,7 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 from pathlib import Path
+import json
 import os
 import secrets
 
@@ -196,7 +197,23 @@ def public_member(member: dict) -> dict:
     """Strip sensitive fields before returning member JSON."""
     data = dict(member)
     data.pop('password_hash', None)
+    interests = data.get('ministry_interests')
+    if isinstance(interests, str):
+        try:
+            data['ministry_interests'] = json.loads(interests) if interests else []
+        except (json.JSONDecodeError, TypeError):
+            data['ministry_interests'] = []
+    elif interests is None:
+        data['ministry_interests'] = []
     return data
+
+
+def _parse_ministry_interests(value) -> str:
+    if isinstance(value, list):
+        return json.dumps([str(v).strip() for v in value if str(v).strip()])
+    if isinstance(value, str):
+        return value
+    return '[]'
 
 # ============================================================================
 # AUTH ROUTES (using your existing auth.py)
@@ -370,6 +387,100 @@ def get_me():
     except Exception as e:
         print(f"Get me error: {e}")
         return jsonify({'error': 'Member not found'}), 404
+
+
+@app.route('/api/me', methods=['PATCH'])
+@jwt_required()
+def update_me():
+    """Member self-service profile updates."""
+    db_error = require_db()
+    if db_error:
+        return db_error
+
+    data = request.get_json(silent=True) or {}
+    allowed = {}
+    for field in ('full_name', 'phone', 'continent', 'country', 'city', 'village',
+                  'bio', 'profile_photo_url', 'preferred_language', 'timezone'):
+        if field in data:
+            val = data[field]
+            allowed[field] = val.strip() if isinstance(val, str) else val
+
+    if 'membership_status' in data:
+        status = data['membership_status']
+        valid_statuses = {
+            'visitor', 'new_convert', 'new_member',
+            'active_member', 'inactive_member', 'transferred',
+        }
+        if status not in valid_statuses:
+            return jsonify({'error': 'Invalid membership status'}), 400
+        allowed['membership_status'] = status
+
+    if 'ministry_interests' in data:
+        allowed['ministry_interests'] = _parse_ministry_interests(data['ministry_interests'])
+
+    if not allowed:
+        return jsonify({'error': 'No valid fields to update'}), 400
+
+    if 'full_name' in allowed and not (allowed['full_name'] or '').strip():
+        return jsonify({'error': 'Full name is required'}), 400
+
+    allowed['updated_at'] = datetime.utcnow().isoformat()
+
+    try:
+        member_id = get_jwt_identity()
+        result = db_execute(
+            lambda client: client.table("members").update(allowed).eq("id", member_id).execute()
+        )
+        if not result.data:
+            return jsonify({'error': 'Profile update failed'}), 400
+        return jsonify(public_member(result.data[0])), 200
+    except Exception as e:
+        print(f"Update me error: {e}")
+        message = str(e)
+        if 'column' in message.lower() and 'does not exist' in message.lower():
+            return jsonify({
+                'error': 'Profile columns missing',
+                'message': 'Run database_member_profile.sql in Supabase, then try again.',
+            }), 500
+        return jsonify({'error': 'Profile update failed', 'message': message}), 500
+
+
+@app.route('/api/me/password', methods=['POST'])
+@jwt_required()
+def change_my_password():
+    db_error = require_db()
+    if db_error:
+        return db_error
+
+    data = request.get_json(silent=True) or {}
+    current_password = data.get('current_password') or ''
+    new_password = data.get('new_password') or ''
+    if not current_password or not new_password:
+        return jsonify({'error': 'Current and new password are required'}), 400
+    if len(new_password) < 6:
+        return jsonify({'error': 'New password must be at least 6 characters'}), 400
+
+    try:
+        member_id = get_jwt_identity()
+        result = db_execute(
+            lambda client: client.table("members").select("*").eq("id", member_id).single().execute()
+        )
+        if not result.data:
+            return jsonify({'error': 'Member not found'}), 404
+        member = result.data[0]
+        if not verify_password(current_password, member.get('password_hash') or ''):
+            return jsonify({'error': 'Current password is incorrect'}), 400
+
+        db_execute(
+            lambda client: client.table("members").update({
+                'password_hash': hash_password(new_password),
+                'updated_at': datetime.utcnow().isoformat(),
+            }).eq("id", member_id).execute()
+        )
+        return jsonify({'status': 'ok', 'message': 'Password updated'}), 200
+    except Exception as e:
+        print(f"Change password error: {e}")
+        return jsonify({'error': 'Password update failed', 'message': str(e)}), 500
 
 
 @app.route('/api/me/stats', methods=['GET'])

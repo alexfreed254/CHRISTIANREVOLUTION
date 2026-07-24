@@ -14,6 +14,7 @@ import GlassCard from '../components/common/GlassCard'
 import Footer from '../components/common/Footer'
 
 const PORTAL_LINKS = [
+  { to: '/portal/profile', icon: User, title: 'My Profile', desc: 'Photo, bio, ministries & settings' },
   { to: '/discipleship', icon: Library, title: 'My Library', desc: 'Saved materials & courses' },
   { to: '/discipleship', icon: BookOpen, title: 'My Courses', desc: 'Track your progress' },
   { to: '/events', icon: Calendar, title: 'Events', desc: 'Upcoming & registered' },
@@ -72,13 +73,23 @@ export default function Portal() {
           </div>
 
           <GlassCard hover={false} className="p-4 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-crm-purple flex items-center justify-center text-white font-bold text-lg shrink-0">
-              {user.full_name?.charAt(0)}
-            </div>
+            {user.profile_photo_url ? (
+              <img src={user.profile_photo_url} alt="" className="w-12 h-12 rounded-full object-cover shrink-0 border border-crm-purple/30" />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-crm-purple flex items-center justify-center text-white font-bold text-lg shrink-0">
+                {user.full_name?.charAt(0)}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-crm-white truncate">{user.full_name}</p>
               <p className="text-xs text-crm-purple font-mono">{user.unique_id}</p>
+              {user.ministry_interests?.length > 0 && (
+                <p className="text-xs text-crm-gray mt-1 truncate">{user.ministry_interests.join(' · ')}</p>
+              )}
             </div>
+            <Link to="/portal/profile" className="text-xs px-3 py-2 rounded-lg bg-crm-purple/10 text-crm-purple font-semibold shrink-0 hover:bg-crm-purple/20">
+              Edit
+            </Link>
           </GlassCard>
         </motion.div>
 

@@ -3,7 +3,7 @@ import { Navigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard, Users, Radio, Library, DollarSign, Heart,
-  Plus, Trash2, Save, RefreshCw, Shield, Search, Settings, BookMarked
+  Plus, Trash2, Save, RefreshCw, Shield, Search, Settings, BookMarked, Pencil, X
 } from 'lucide-react'
 import SpiritualMaterialsAdmin from '../components/admin/SpiritualMaterialsAdmin'
 import axios from 'axios'
@@ -51,6 +51,7 @@ export default function AdminDashboard() {
   const [mediaForm, setMediaForm] = useState({
     title: '', description: '', video_url: '', audio_url: '', thumbnail_url: '', speaker: '', duration: 3600, bible_reference: ''
   })
+  const [editingMediaId, setEditingMediaId] = useState(null)
   const [paymentForm, setPaymentForm] = useState({
     paypal_email: '',
     paypal_client_id: '',
@@ -189,7 +190,27 @@ export default function AdminDashboard() {
     }
   }
 
-  const createMedia = async (e) => {
+  const resetMediaForm = () => {
+    setMediaForm({ title: '', description: '', video_url: '', audio_url: '', thumbnail_url: '', speaker: '', duration: 3600, bible_reference: '' })
+    setEditingMediaId(null)
+  }
+
+  const startEditMedia = (item) => {
+    setEditingMediaId(item.id)
+    setMediaForm({
+      title: item.title || '',
+      description: item.description || '',
+      video_url: item.video_url || item.url || '',
+      audio_url: item.audio_url || '',
+      thumbnail_url: item.thumbnail_url || '',
+      speaker: item.speaker || '',
+      duration: item.duration || item.duration_seconds || 3600,
+      bible_reference: item.bible_reference || '',
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const saveMedia = async (e) => {
     e.preventDefault()
     try {
       const payload = {
@@ -197,19 +218,25 @@ export default function AdminDashboard() {
         duration: Number(mediaForm.duration) || 0,
         topics: mediaForm.bible_reference ? ['Teaching'] : [],
       }
-      await axios.post('/api/admin/media', payload, authHeaders(token))
-      toast.success('Media added — it will appear in the library')
-      setMediaForm({ title: '', description: '', video_url: '', audio_url: '', thumbnail_url: '', speaker: '', duration: 3600, bible_reference: '' })
+      if (editingMediaId) {
+        await axios.patch(`/api/admin/media/${editingMediaId}`, payload, authHeaders(token))
+        toast.success('Sermon updated')
+      } else {
+        await axios.post('/api/admin/media', payload, authHeaders(token))
+        toast.success('Media added — it will appear in the library')
+      }
+      resetMediaForm()
       loadTab('media')
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to add media')
+      toast.error(err.response?.data?.error || 'Failed to save media')
     }
   }
 
   const deleteMedia = async (id) => {
-    if (!confirm('Delete this media item?')) return
+    if (!confirm('Delete this sermon/media item permanently?')) return
     try {
       await axios.delete(`/api/admin/media/${id}`, authHeaders(token))
+      if (editingMediaId === id) resetMediaForm()
       toast.success('Media deleted')
       loadTab('media')
     } catch (err) {
@@ -483,8 +510,18 @@ export default function AdminDashboard() {
 
         {tab === 'media' && (
           <div className="grid lg:grid-cols-2 gap-8">
-            <form onSubmit={createMedia} className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-              <h2 className="text-lg font-semibold text-crm-white flex items-center gap-2"><Plus className="w-5 h-5" /> Add Media</h2>
+            <form onSubmit={saveMedia} className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-lg font-semibold text-crm-white flex items-center gap-2">
+                  {editingMediaId ? <Pencil className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                  {editingMediaId ? 'Edit Sermon / Media' : 'Add Sermon / Media'}
+                </h2>
+                {editingMediaId && (
+                  <button type="button" onClick={resetMediaForm} className="p-2 rounded-lg hover:bg-slate-200 text-crm-gray">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
               {['title', 'speaker', 'video_url', 'audio_url', 'thumbnail_url', 'bible_reference'].map((field) => (
                 <input
                   key={field}
@@ -509,12 +546,14 @@ export default function AdminDashboard() {
                 className="w-full px-3 py-2 rounded-xl bg-slate-100 border border-slate-200 text-crm-white"
                 rows={3}
               />
-              <button type="submit" className="w-full py-3 rounded-xl bg-crm-purple text-white font-bold">Add to Library</button>
+              <button type="submit" className="w-full py-3 rounded-xl bg-crm-purple text-white font-bold">
+                {editingMediaId ? 'Save Changes' : 'Add to Library'}
+              </button>
             </form>
 
             <div className="space-y-3 max-h-[70vh] overflow-y-auto">
               {media.map((m) => (
-                <div key={m.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex gap-3">
+                <div key={m.id} className={`p-4 rounded-2xl border flex gap-3 ${editingMediaId === m.id ? 'bg-crm-purple/5 border-crm-purple/40' : 'bg-slate-50 border-slate-200'}`}>
                   {m.thumbnail_url && (
                     <img src={m.thumbnail_url} alt="" className="w-24 h-16 object-cover rounded-lg" />
                   )}
@@ -523,9 +562,14 @@ export default function AdminDashboard() {
                     <p className="text-xs text-crm-gray">{m.speaker}</p>
                     <Link to={`/sermons/${m.id}`} className="text-xs text-crm-purple hover:underline">Play →</Link>
                   </div>
-                  <button onClick={() => deleteMedia(m.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex flex-col gap-1 shrink-0">
+                    <button type="button" onClick={() => startEditMedia(m)} className="p-2 text-crm-purple hover:bg-crm-purple/10 rounded-lg" title="Edit">
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button type="button" onClick={() => deleteMedia(m.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg" title="Delete">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

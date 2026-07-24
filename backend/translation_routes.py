@@ -53,6 +53,8 @@ UI_STRINGS_EN = {
     "portal.welcome": "Welcome",
     "portal.todayBite": "Today's Teaching",
     "portal.myCourses": "My Courses",
+    "portal.profile": "My Profile",
+    "portal.editProfile": "Edit Profile",
     "media.library": "Sermons",
     "common.loading": "Loading...",
     "common.language": "Language",

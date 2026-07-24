@@ -29,6 +29,8 @@ export const UI_STRINGS_EN = {
   'portal.todayBite': "Today's Teaching",
   'portal.myCourses': 'My Courses',
   'portal.myLibrary': 'My Library',
+  'portal.profile': 'My Profile',
+  'portal.editProfile': 'Edit Profile',
   'portal.events': 'Events',
   'portal.giving': 'Giving',
   'media.library': 'Sermons',

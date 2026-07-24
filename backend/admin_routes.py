@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from functools import wraps
 from typing import Callable
+import json
 import os
 import secrets
 
@@ -134,6 +135,19 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
             allowed['growth_stage'] = data['growth_stage']
         if 'engagement_score' in data:
             allowed['engagement_score'] = int(data['engagement_score'])
+        if request.admin_member.get('role') == 'super_admin':
+            for field in ('full_name', 'phone', 'email', 'continent', 'country', 'city',
+                            'village', 'bio', 'profile_photo_url', 'membership_status',
+                            'preferred_language', 'timezone'):
+                if field in data:
+                    val = data[field]
+                    allowed[field] = val.strip() if isinstance(val, str) else val
+            if 'ministry_interests' in data:
+                interests = data['ministry_interests']
+                if isinstance(interests, list):
+                    allowed['ministry_interests'] = json.dumps(
+                        [str(v).strip() for v in interests if str(v).strip()]
+                    )
         if not allowed:
             return jsonify({'error': 'No valid fields to update'}), 400
 
@@ -330,6 +344,9 @@ def register_admin_routes(app, *, socketio, supabase, db_ready, db_execute, try_
                 updated = {**m, **{k: v for k, v in data.items() if v is not None}}
                 if 'video_url' in data:
                     updated['url'] = data['video_url']
+                for field in ('audio_url', 'bible_reference', 'topics', 'description', 'speaker', 'title', 'thumbnail_url', 'duration'):
+                    if field in data:
+                        updated[field] = data[field]
                 MEDIA_STORE[i] = updated
                 if db_ready():
                     try:

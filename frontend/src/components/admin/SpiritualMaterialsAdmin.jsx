@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
-  Plus, Trash2, Save, RefreshCw, CheckCircle, Clock, Archive, Globe
+  Plus, Trash2, Save, RefreshCw, CheckCircle, Clock, Archive, Globe, Pencil, X
 } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
@@ -49,11 +49,50 @@ function authHeaders(token) {
   return { headers: { Authorization: `Bearer ${token}` } }
 }
 
+function toDatetimeLocal(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+function materialToForm(m) {
+  let publish_mode = 'draft'
+  if (m.status === 'published') publish_mode = 'immediate'
+  else if (m.status === 'scheduled') publish_mode = 'schedule'
+  else if (m.status === 'draft') publish_mode = 'draft'
+
+  return {
+    title: m.title || '',
+    material_type: m.material_type || 'daily_devotional',
+    description: m.description || '',
+    content: m.content || '',
+    file_url: m.file_url || '',
+    video_url: m.video_url || '',
+    audio_url: m.audio_url || '',
+    thumbnail_url: m.thumbnail_url || '',
+    language: m.language || 'en',
+    parent_id: m.parent_id || '',
+    all_languages: !!m.all_languages,
+    category: m.category || '',
+    ministry: m.ministry || '',
+    speaker: m.speaker || '',
+    bible_reference: m.bible_reference || '',
+    publish_mode,
+    publish_at: toDatetimeLocal(m.publish_at),
+    available_until: toDatetimeLocal(m.available_until),
+    featured: !!m.featured,
+    visibility: m.visibility || 'public',
+  }
+}
+
 export default function SpiritualMaterialsAdmin({ token }) {
   const [stats, setStats] = useState(null)
   const [materials, setMaterials] = useState([])
   const [platformLanguages, setPlatformLanguages] = useState([{ code: 'en', label: 'English' }])
   const [form, setForm] = useState(EMPTY_FORM)
+  const [editingId, setEditingId] = useState(null)
   const [loading, setLoading] = useState(false)
   const [filterStatus, setFilterStatus] = useState('')
 
@@ -86,24 +125,42 @@ export default function SpiritualMaterialsAdmin({ token }) {
     if (token) load()
   }, [token, filterStatus])
 
-  const createMaterial = async (e) => {
+  const buildPayload = () => ({
+    ...form,
+    parent_id: form.parent_id || null,
+    publish_at: form.publish_mode === 'schedule' && form.publish_at
+      ? new Date(form.publish_at).toISOString()
+      : undefined,
+    available_until: form.available_until ? new Date(form.available_until).toISOString() : null,
+  })
+
+  const resetForm = () => {
+    setForm(EMPTY_FORM)
+    setEditingId(null)
+  }
+
+  const saveMaterial = async (e) => {
     e.preventDefault()
     try {
-      const payload = {
-        ...form,
-        parent_id: form.parent_id || null,
-        publish_at: form.publish_mode === 'schedule' && form.publish_at
-          ? new Date(form.publish_at).toISOString()
-          : undefined,
-        available_until: form.available_until ? new Date(form.available_until).toISOString() : null,
+      const payload = buildPayload()
+      if (editingId) {
+        await axios.patch(`/api/admin/spiritual-materials/${editingId}`, payload, authHeaders(token))
+        toast.success('Material updated')
+      } else {
+        await axios.post('/api/admin/spiritual-materials', payload, authHeaders(token))
+        toast.success('Material created')
       }
-      await axios.post('/api/admin/spiritual-materials', payload, authHeaders(token))
-      toast.success('Material created')
-      setForm(EMPTY_FORM)
+      resetForm()
       load()
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Create failed')
+      toast.error(err.response?.data?.error || 'Save failed')
     }
+  }
+
+  const startEdit = (material) => {
+    setEditingId(material.id)
+    setForm(materialToForm(material))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const publishNow = async (id) => {
@@ -130,6 +187,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
     if (!confirm('Delete this material permanently?')) return
     try {
       await axios.delete(`/api/admin/spiritual-materials/${id}`, authHeaders(token))
+      if (editingId === id) resetForm()
       toast.success('Deleted')
       load()
     } catch (err) {
@@ -185,10 +243,18 @@ export default function SpiritualMaterialsAdmin({ token }) {
         </div>
       )}
 
-      <form onSubmit={createMaterial} className="p-4 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
-        <h3 className="text-lg font-semibold text-crm-white flex items-center gap-2">
-          <Plus className="w-5 h-5" /> Create New Material
-        </h3>
+      <form onSubmit={saveMaterial} className="p-4 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-lg font-semibold text-crm-white flex items-center gap-2">
+            {editingId ? <Pencil className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+            {editingId ? 'Edit Material' : 'Create New Material'}
+          </h3>
+          {editingId && (
+            <button type="button" onClick={resetForm} className="p-2 rounded-lg hover:bg-slate-200 text-crm-gray">
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
@@ -322,7 +388,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
         </div>
 
         <button type="submit" className="inline-flex items-center gap-2 shield-button px-6 py-3">
-          <Save className="w-4 h-4" /> Create Material
+          <Save className="w-4 h-4" /> {editingId ? 'Save Changes' : 'Create Material'}
         </button>
       </form>
 
@@ -344,7 +410,7 @@ export default function SpiritualMaterialsAdmin({ token }) {
 
         <div className="space-y-3">
           {materials.map((m) => (
-            <div key={m.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div key={m.id} className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${editingId === m.id ? 'bg-crm-purple/5 border-crm-purple/40' : 'bg-slate-50 border-slate-200'}`}>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
                   {statusBadge(m.status)}
@@ -359,6 +425,9 @@ export default function SpiritualMaterialsAdmin({ token }) {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 shrink-0">
+                <button type="button" onClick={() => startEdit(m)} className="p-2 text-crm-purple hover:bg-crm-purple/10 rounded-lg" title="Edit">
+                  <Pencil className="w-4 h-4" />
+                </button>
                 {m.status !== 'published' && (
                   <button type="button" onClick={() => publishNow(m.id)} className="text-xs px-3 py-1.5 rounded-lg bg-green-500/20 text-green-300">
                     Publish

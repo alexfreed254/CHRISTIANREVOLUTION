@@ -18,6 +18,7 @@ import Contact from './pages/Contact'
 import EventsNews from './pages/EventsNews'
 import Ministries from './pages/Ministries'
 import Sermons from './pages/Sermons'
+import Profile from './pages/Profile'
 import AdminDashboard from './pages/AdminDashboard'
 import { AuthProvider } from './context/AuthContext'
 import { LanguageProvider } from './context/LanguageContext'
@@ -51,6 +52,7 @@ function App() {
               <Route path="/prayer" element={<PrayerWall />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/portal/profile" element={<Profile />} />
               <Route path="/portal" element={<Portal />} />
               <Route path="/discipleship/:materialId" element={<SpiritualMaterialView />} />
               <Route path="/discipleship" element={<DiscipleshipLibrary />} />
